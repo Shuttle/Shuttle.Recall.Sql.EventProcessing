@@ -14,8 +14,7 @@
 		<copyright>Copyright (c) {year}, Eben Roux</copyright>
     <tags>shuttle shuttle-recall sql sql-server event-sourcing</tags>
     <dependencies>
-      <dependency id="Shuttle.Recall" version="{Shuttle.Recall-version}" />
-      <dependency id="Shuttle.Core.Data" version="{Shuttle.Core.Data-version}" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="{Shuttle.Recall.Sql.Storage-version}" />
     </dependencies>
   </metadata>
   <files>

@@ -54,7 +54,6 @@
 			<NugetBinaries Include="$(DeploymentFolder)\release\**\$(PackageAssembly).dll" />
 		</ItemGroup>
 
-    <Copy SourceFiles="..\Shuttle.Recall.Sql.EventProcessing\.scripts\System.Data.SqlClient\EventStoreCreate.sql" DestinationFolder="$(DeploymentFolder)\nuget\scripts\System.Data.SqlClient" SkipUnchangedFiles="false" />
     <Copy SourceFiles="..\Shuttle.Recall.Sql.EventProcessing\.scripts\System.Data.SqlClient\ProjectionCreate.sql" DestinationFolder="$(DeploymentFolder)\nuget\scripts\System.Data.SqlClient" SkipUnchangedFiles="false" />
 
     <Copy SourceFiles="package.nuspec" DestinationFolder="$(DeploymentFolder)\nuget\" SkipUnchangedFiles="false" />

@@ -8,12 +8,9 @@ namespace Shuttle.Recall.Sql.EventProcessing
 	public class ProjectionSection : ConfigurationSection
 	{
 		[ConfigurationProperty("eventStoreConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
-		public string EventStoreConnectionStringName
-		{
-			get { return (string)this["eventStoreConnectionStringName"]; }
-		}
+		public string EventStoreConnectionStringName => (string)this["eventStoreConnectionStringName"];
 
-		[ConfigurationProperty("eventProjectionConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
+	    [ConfigurationProperty("eventProjectionConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
 		public string EventProjectionConnectionStringName
 		{
 			get { return (string)this["eventProjectionConnectionStringName"]; }
