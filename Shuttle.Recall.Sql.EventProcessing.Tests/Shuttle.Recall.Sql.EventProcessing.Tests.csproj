@@ -55,16 +55,16 @@
       <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.2\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Shuttle.Recall, Version=8.1.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.8.1.3\lib\net40-full\Shuttle.Recall.dll</HintPath>
+    <Reference Include="Shuttle.Recall, Version=8.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Recall.8.2.1\lib\net40-full\Shuttle.Recall.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Shuttle.Recall.Sql.Storage, Version=8.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.Sql.Storage.8.0.8\lib\net40-full\Shuttle.Recall.Sql.Storage.dll</HintPath>
+    <Reference Include="Shuttle.Recall.Sql.Storage, Version=8.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Recall.Sql.Storage.8.0.9\lib\net40-full\Shuttle.Recall.Sql.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Shuttle.Recall.Tests, Version=1.7.25.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.Tests.8.0.0\lib\net40-full\Shuttle.Recall.Tests.dll</HintPath>
+    <Reference Include="Shuttle.Recall.Tests, Version=8.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Recall.Tests.8.2.2\lib\net40-full\Shuttle.Recall.Tests.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Fixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StorageFixture.cs" />
     <Compile Include="Timer.cs" />
   </ItemGroup>
   <ItemGroup>
