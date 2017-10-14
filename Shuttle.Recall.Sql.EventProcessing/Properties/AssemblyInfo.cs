@@ -29,10 +29,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Shuttle.Recall.Sql.EventProcessing for .NET Framework 4.6.2")]
 #endif
 
-[assembly: AssemblyVersion("8.0.11.0")]
+[assembly: AssemblyVersion("8.0.12.0")]
 [assembly: AssemblyCopyright("Copyright © Eben Roux 2017")]
 [assembly: AssemblyProduct("Shuttle.Recall")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("8.0.11")]
+[assembly: AssemblyInformationalVersion("8.0.12")]
 [assembly: ComVisible(false)]
