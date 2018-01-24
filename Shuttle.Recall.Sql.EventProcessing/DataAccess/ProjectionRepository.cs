@@ -1,5 +1,5 @@
-﻿using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -10,8 +10,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public ProjectionRepository(IDatabaseGateway databaseGateway, IProjectionQueryFactory queryFactory)
         {
-            Guard.AgainstNull(databaseGateway, "databaseGateway");
-            Guard.AgainstNull(queryFactory, "queryFactory");
+            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
+            Guard.AgainstNull(queryFactory, nameof(queryFactory));
 
             _databaseGateway = databaseGateway;
             _queryFactory = queryFactory;

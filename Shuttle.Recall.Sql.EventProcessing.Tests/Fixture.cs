@@ -1,6 +1,9 @@
-﻿using NUnit.Framework;
+﻿using Moq;
+using NUnit.Framework;
 using Shuttle.Core.Data;
-using Shuttle.Recall.Tests;
+#if (NETCOREAPP2_0 || NETSTANDARD2_0)
+using Shuttle.Core.Data.SqlClient;
+#endif
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
 {
@@ -14,9 +17,30 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 		{
 			DatabaseGateway = new DatabaseGateway();
             DatabaseContextCache = new ThreadStaticDatabaseContextCache();
-            DatabaseContextFactory = new DatabaseContextFactory(new DbConnectionFactory(), new DbCommandFactory(), DatabaseContextCache);
 
-			ClearDataStore();
+#if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
+            DatabaseContextFactory = new DatabaseContextFactory(
+                new ConnectionConfigurationProvider(),
+                new DbConnectionFactory(), 
+                new DbCommandFactory(), 
+                new ThreadStaticDatabaseContextCache());
+#else
+		    var connectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
+
+		    connectionConfigurationProvider.Setup(m => m.Get(It.IsAny<string>())).Returns(
+		        new ConnectionConfiguration(
+		            "Shuttle",
+		            "System.Data.SqlClient",
+		            "Data Source=.\\sqlexpress;Initial Catalog=shuttle;Integrated Security=SSPI;"));
+
+		    DatabaseContextFactory = new DatabaseContextFactory(
+		        connectionConfigurationProvider.Object,
+		        new DbConnectionFactory(new DbProviderFactories()),
+		        new DbCommandFactory(),
+		        new ThreadStaticDatabaseContextCache());
+#endif
+
+            ClearDataStore();
 		}
 
 		public DatabaseGateway DatabaseGateway { get; private set; }

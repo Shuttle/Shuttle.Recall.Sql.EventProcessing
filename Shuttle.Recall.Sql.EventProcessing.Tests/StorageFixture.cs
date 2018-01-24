@@ -2,8 +2,8 @@
 using NUnit.Framework;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Recall.Tests;
+using Shuttle.Core.Container;
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
 {

@@ -1,5 +1,5 @@
-﻿using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -9,7 +9,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
 	    public ProjectionQueryFactory(IScriptProvider scriptProvider)
 	    {
-            Guard.AgainstNull(scriptProvider, "scriptProvider");
+            Guard.AgainstNull(scriptProvider, nameof(scriptProvider));
 
 	        _scriptProvider = scriptProvider;
 	    }

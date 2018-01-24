@@ -1,65 +1,51 @@
 ﻿using System;
 using System.Configuration;
+using Shuttle.Core.Configuration;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
-	public class ProjectionSection : ConfigurationSection
-	{
-		[ConfigurationProperty("eventStoreConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
-		public string EventStoreConnectionStringName => (string)this["eventStoreConnectionStringName"];
+    public class ProjectionSection : ConfigurationSection
+    {
+        [ConfigurationProperty("eventStoreConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
+        public string EventStoreConnectionStringName => (string) this["eventStoreConnectionStringName"];
 
-	    [ConfigurationProperty("eventProjectionConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
-		public string EventProjectionConnectionStringName
-		{
-			get { return (string)this["eventProjectionConnectionStringName"]; }
-		}
+        [ConfigurationProperty("eventProjectionConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
+        public string EventProjectionConnectionStringName => (string) this["eventProjectionConnectionStringName"];
 
-		[ConfigurationProperty("eventProjectionPrefetchCount", IsRequired = false, DefaultValue = ProjectionConfiguration.DefaultEventProjectionPrefetchCount)]
-		public int EventProjectionPrefetchCount
+        [ConfigurationProperty("eventProjectionPrefetchCount", IsRequired = false,
+            DefaultValue = ProjectionConfiguration.DefaultEventProjectionPrefetchCount)]
+        public int EventProjectionPrefetchCount => (int) this["eventProjectionPrefetchCount"];
+
+        public static ProjectionConfiguration Configuration(IConnectionConfigurationProvider provider)
         {
-			get { return (int)this["eventProjectionPrefetchCount"]; }
-		}
+            Guard.AgainstNull(provider, nameof(provider));
 
-		public static ProjectionConfiguration Configuration()
-		{
-			var section = ConfigurationSectionProvider.Open<ProjectionSection>("shuttle", "projection");
-			var configuration = new ProjectionConfiguration();
+            var section = ConfigurationSectionProvider.Open<ProjectionSection>("shuttle", "projection");
+            var configuration = new ProjectionConfiguration();
 
-			var eventStoreConnectionStringName = "EventStore";
-			var eventProjectionConnectionStringName = "EventStore";
+            var eventStoreConnectionStringName = "EventStore";
+            var eventProjectionConnectionStringName = "EventStore";
 
-			if (section != null)
-			{
-				eventStoreConnectionStringName = section.EventStoreConnectionStringName;
-				eventProjectionConnectionStringName = section.EventProjectionConnectionStringName;
+            if (section != null)
+            {
+                eventStoreConnectionStringName = section.EventStoreConnectionStringName;
+                eventProjectionConnectionStringName = section.EventProjectionConnectionStringName;
                 configuration.EventProjectionPrefetchCount = section.EventProjectionPrefetchCount;
             }
 
-            var settings = GetConnectionStringSettings(eventStoreConnectionStringName);
+            var connectionConfiguration = provider.Get(eventStoreConnectionStringName);
 
-			configuration.EventStoreConnectionString = settings.ConnectionString;
-			configuration.EventStoreProviderName = settings.ProviderName;
+            configuration.EventStoreConnectionString = connectionConfiguration.ConnectionString;
+            configuration.EventStoreProviderName = connectionConfiguration.ProviderName;
 
-		    settings = GetConnectionStringSettings(eventProjectionConnectionStringName);
+            connectionConfiguration = provider.Get(eventProjectionConnectionStringName);
 
-			configuration.EventProjectionConnectionString = settings.ConnectionString;
-			configuration.EventProjectionProviderName = settings.ProviderName;
+            configuration.EventProjectionConnectionString = connectionConfiguration.ConnectionString;
+            configuration.EventProjectionProviderName = connectionConfiguration.ProviderName;
 
-			return configuration;
-		}
-
-	    private static ConnectionStringSettings GetConnectionStringSettings(string connectionStringName)
-	    {
-            var result = ConfigurationManager.ConnectionStrings[connectionStringName];
-
-            if (result == null)
-            {
-                throw new InvalidOperationException(string.Format(DataResources.ConnectionStringMissing, connectionStringName));
-            }
-
-	        return result;
-	    }
-	}
+            return configuration;
+        }
+    }
 }

@@ -1,4 +1,4 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -8,7 +8,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
 		public ScriptProvider(IScriptProviderConfiguration configuration)
 		{
-			Guard.AgainstNull(configuration, "configuration");
+			Guard.AgainstNull(configuration, nameof(configuration));
 
 			_scriptProvider = new Core.Data.ScriptProvider(new ScriptProviderConfiguration
 			{

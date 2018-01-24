@@ -1,25 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing", "Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj", "{8B9CB073-9BED-46A5-951F-97473CE9D895}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing", "Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj", "{981D5846-D213-4B3D-B21F-44CDE06DDE32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing.Tests", "Shuttle.Recall.Sql.EventProcessing.Tests\Shuttle.Recall.Sql.EventProcessing.Tests.csproj", "{3F82B456-D536-4E9C-B4DB-B8E32E87AFFE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{E270853E-0A7D-456A-859A-6EDC932DB196}"
-	ProjectSection(SolutionItems) = preProject
-		.build\package.msbuild = .build\package.msbuild
-		.build\package.nuspec = .build\package.nuspec
-		.build\Shuttle.Core.MSBuild.dll = .build\Shuttle.Core.MSBuild.dll
-		.build\Shuttle.Core.MSBuild.targets = .build\Shuttle.Core.MSBuild.targets
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{77740C93-0ED7-4764-AE7C-8B81A4CC1F4F}"
-	ProjectSection(SolutionItems) = preProject
-		LICENSE = LICENSE
-		README.md = README.md
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing.Tests", "Shuttle.Recall.Sql.EventProcessing.Tests\Shuttle.Recall.Sql.EventProcessing.Tests.csproj", "{55E9703B-ABED-47F9-BAB6-67AA9964BA56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,16 +13,19 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8B9CB073-9BED-46A5-951F-97473CE9D895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B9CB073-9BED-46A5-951F-97473CE9D895}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B9CB073-9BED-46A5-951F-97473CE9D895}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B9CB073-9BED-46A5-951F-97473CE9D895}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F82B456-D536-4E9C-B4DB-B8E32E87AFFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F82B456-D536-4E9C-B4DB-B8E32E87AFFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F82B456-D536-4E9C-B4DB-B8E32E87AFFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F82B456-D536-4E9C-B4DB-B8E32E87AFFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{981D5846-D213-4B3D-B21F-44CDE06DDE32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{981D5846-D213-4B3D-B21F-44CDE06DDE32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{981D5846-D213-4B3D-B21F-44CDE06DDE32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{981D5846-D213-4B3D-B21F-44CDE06DDE32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55E9703B-ABED-47F9-BAB6-67AA9964BA56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55E9703B-ABED-47F9-BAB6-67AA9964BA56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55E9703B-ABED-47F9-BAB6-67AA9964BA56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55E9703B-ABED-47F9-BAB6-67AA9964BA56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A0514493-CA29-4AC7-9BD8-2387F3C25608}
 	EndGlobalSection
 EndGlobal

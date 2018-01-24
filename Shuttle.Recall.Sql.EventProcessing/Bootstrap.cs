@@ -1,5 +1,6 @@
-﻿using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Core.Container;
+using Shuttle.Core.Contract;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -9,11 +10,14 @@ namespace Shuttle.Recall.Sql.EventProcessing
 	{
 		public void Register(IComponentRegistry registry)
 		{
-			Guard.AgainstNull(registry, "registry");
+			Guard.AgainstNull(registry, nameof(registry));
 
-			registry.AttemptRegister<IProjectionConfiguration>(ProjectionSection.Configuration());
+		    if (!registry.IsRegistered<IProjectionConfiguration>())
+		    {
+		        registry.AttemptRegisterInstance<IProjectionConfiguration>(ProjectionSection.Configuration(new ConnectionConfigurationProvider()));
+		    }
 
-			registry.AttemptRegister<IScriptProviderConfiguration, ScriptProviderConfiguration>();
+		    registry.AttemptRegister<IScriptProviderConfiguration, ScriptProviderConfiguration>();
 			registry.AttemptRegister<IScriptProvider, ScriptProvider>();
 
 			registry.AttemptRegister<IDatabaseContextCache, ThreadStaticDatabaseContextCache>();
@@ -31,7 +35,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
 		public void Resolve(IComponentResolver resolver)
 		{
-			Guard.AgainstNull(resolver, "resolver");
+			Guard.AgainstNull(resolver, nameof(resolver));
 
 			resolver.Resolve<EventProcessingModule>();
 		}

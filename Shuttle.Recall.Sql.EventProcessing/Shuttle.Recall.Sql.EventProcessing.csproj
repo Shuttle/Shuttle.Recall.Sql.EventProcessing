@@ -1,123 +1,29 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8B9CB073-9BED-46A5-951F-97473CE9D895}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Shuttle.Recall.Sql.EventProcessing</RootNamespace>
-    <AssemblyName>Shuttle.Recall.Sql.EventProcessing</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Framework Condition=" '$(Framework)' == '' ">net40-full</Framework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Shuttle.Core.Data, Version=8.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Data.8.0.1\lib\net40-full\Shuttle.Core.Data.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Recall, Version=8.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.8.2.2\lib\net40-full\Shuttle.Recall.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Recall.Sql.Storage, Version=8.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.Sql.Storage.8.0.9\lib\net40-full\Shuttle.Recall.Sql.Storage.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Data" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Bootstrap.cs" />
-    <Compile Include="Configuration\IProjectionConfiguration.cs" />
-    <Compile Include="Configuration\ProjectionConfiguration.cs" />
-    <Compile Include="Configuration\ProjectionSection.cs" />
-    <Compile Include="DataAccess\ProjectionRepository.cs" />
-    <Compile Include="DataAccess\IProjectionQueryFactory.cs" />
-    <Compile Include="DataAccess\ProjectionPositionColumns.cs" />
-    <Compile Include="DataAccess\ProjectionQueryFactory.cs" />
-    <Compile Include="EventProcessingModule.cs" />
-    <Compile Include="EventProcessingObserver.cs" />
-    <Compile Include="IScriptProvider.cs" />
-    <Compile Include="IScriptProviderConfiguration.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScriptProvider.cs" />
-    <Compile Include="ScriptProviderConfiguration.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".scripts\System.Data.SqlClient\ProjectionCreate.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.GetSequenceNumber.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.SetSequenceNumber.sql" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net46;net461;net462;net47;net471;netstandard2.0;netcoreapp2.0</TargetFrameworks>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include=".build\package.msbuild" />
+        <None Include=".build\package.nuspec" />
+        <None Include=".build\Shuttle.MSBuild.dll" />
+        <None Include=".build\Shuttle.MSBuild.targets" />
+        <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.GetSequenceNumber.sql" />
+        <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.SetSequenceNumber.sql" />
+        <None Include=".scripts\System.Data.SqlClient\ProjectionCreate.sql" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Shuttle.Core.Data" Version="10.0.2" />
+        <PackageReference Include="Shuttle.Recall" Version="10.0.0" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0'" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netstandard2.0' and '$(TargetFramework)' != 'netcoreapp2.0'" />
+        <Reference Include="System.Transactions" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    </ItemGroup>
+
 </Project>
