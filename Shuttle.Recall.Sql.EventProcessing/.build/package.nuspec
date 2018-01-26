@@ -15,8 +15,11 @@
     <copyright>Copyright (c) {year}, Eben Roux</copyright>
     <tags>shuttle eventsourcing eventsource event-sourcing event-source eventstore event-store project event-processing eventprocessing</tags>
     <dependencies>
-      <dependency id="Shuttle.Recall" version="{Shuttle.Recall-version}" />
-      <dependency id="Shuttle.Core.Data" version="{Shuttle.Core.Data-version}" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="{Shuttle.Recall.Sql.Storage-version}" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="scripts\**\*.sql" target="scripts" />
+    <file src="lib\**\*.*" target="lib" />
+  </files>
 </package>

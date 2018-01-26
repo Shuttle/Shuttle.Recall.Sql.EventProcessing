@@ -17,6 +17,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netstandard2.0' and '$(TargetFramework)' != 'netcoreapp2.0'" />
     </ItemGroup>
 

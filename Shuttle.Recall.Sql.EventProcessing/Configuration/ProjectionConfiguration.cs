@@ -17,16 +17,10 @@ namespace Shuttle.Recall.Sql.EventProcessing
         public string EventProjectionConnectionString { get; set; }
         public int EventProjectionPrefetchCount { get; set; }
 
-        public bool SharedConnection
-        {
-            get
-            {
-                return EventStoreProviderName.Equals(EventProjectionProviderName,
-                    StringComparison.InvariantCultureIgnoreCase)
-                       &&
-                       EventStoreConnectionString.Equals(EventProjectionConnectionString,
-                           StringComparison.InvariantCultureIgnoreCase);
-            }
-        }
+        public bool IsSharedConnection => EventStoreProviderName.Equals(EventProjectionProviderName,
+                                            StringComparison.InvariantCultureIgnoreCase)
+                                        &&
+                                        EventStoreConnectionString.Equals(EventProjectionConnectionString,
+                                            StringComparison.InvariantCultureIgnoreCase);
     }
 }

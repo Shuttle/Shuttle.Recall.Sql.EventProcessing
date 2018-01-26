@@ -8,6 +8,6 @@
 		string EventProjectionConnectionString { get; set; }
         int EventProjectionPrefetchCount { get; set; }
 
-        bool SharedConnection { get; }
+        bool IsSharedConnection { get; }
 	}
 }

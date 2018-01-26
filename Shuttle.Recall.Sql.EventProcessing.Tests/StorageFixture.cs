@@ -14,6 +14,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         {
             var container = new WindsorComponentContainer(new WindsorContainer());
 
+            Boostrap(container);
+
             EventStore.Register(container);
 
             using (container.Resolve<IDatabaseContextFactory>().Create(EventStoreConnectionStringName))
