@@ -1,12 +1,15 @@
-﻿using Moq;
+﻿using System;
+using System.Transactions;
 using NUnit.Framework;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
+using Shuttle.Core.Transactions;
 using Shuttle.Recall.Sql.Storage;
 using Shuttle.Recall.Tests;
-#if (NETCOREAPP2_0 || NETSTANDARD2_0)
-using Shuttle.Core.Data.SqlClient;
 
+#if (NETCOREAPP2_0 || NETSTANDARD2_0)
+using Moq;
+using Shuttle.Core.Data.SqlClient;
 #endif
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
@@ -23,8 +26,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 #if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
             DatabaseContextFactory = new DatabaseContextFactory(
                 new ConnectionConfigurationProvider(),
-                new DbConnectionFactory(), 
-                new DbCommandFactory(), 
+                new DbConnectionFactory(),
+                new DbCommandFactory(),
                 new ThreadStaticDatabaseContextCache());
 #else
             var mockConnectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
@@ -62,6 +65,10 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
                     .AddParameterValue(EventStoreColumns.Id, RecallFixture.OrderId));
                 DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from EventStore where Id = @Id")
                     .AddParameterValue(EventStoreColumns.Id, RecallFixture.OrderProcessId));
+                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from SnapshotStore where Id = @Id")
+                    .AddParameterValue(EventStoreColumns.Id, RecallFixture.OrderId));
+                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from SnapshotStore where Id = @Id")
+                    .AddParameterValue(EventStoreColumns.Id, RecallFixture.OrderProcessId));
             }
 
             using (DatabaseContextFactory.Create(EventStoreProjectionConnectionStringName))
@@ -81,6 +88,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
         protected void Boostrap(IComponentRegistry registry)
         {
+            registry.RegisterInstance<ITransactionScopeFactory>(new DefaultTransactionScopeFactory(false, IsolationLevel.Unspecified, TimeSpan.Zero));
+
 #if (NETCOREAPP2_0 || NETSTANDARD2_0)
             registry.Register<IDbProviderFactories, DbProviderFactories>();
 

@@ -22,6 +22,7 @@
 
     <ItemGroup>
         <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netstandard2.0' and '$(TargetFramework)' != 'netcoreapp2.0'" />
+        <Reference Include="System.Transactions" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     </ItemGroup>
 
 </Project>

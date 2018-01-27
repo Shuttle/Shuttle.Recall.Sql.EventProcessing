@@ -20,7 +20,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             using (container.Resolve<IDatabaseContextFactory>().Create(EventStoreConnectionStringName))
             {
-                RecallFixture.ExerciseEventProcessing(EventStore.Create(container), EventProcessor.Create(container));
+                RecallFixture.ExerciseEventProcessing(EventStore.Create(container), EventProcessor.Create(container), 300);
             }
         }
     }
