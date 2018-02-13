@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 using Shuttle.Core.Configuration;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
