@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing", "Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj", "{981D5846-D213-4B3D-B21F-44CDE06DDE32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall.Sql.EventProcessing", "Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj", "{981D5846-D213-4B3D-B21F-44CDE06DDE32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Recall.Sql.EventProcessing.Tests", "Shuttle.Recall.Sql.EventProcessing.Tests\Shuttle.Recall.Sql.EventProcessing.Tests.csproj", "{55E9703B-ABED-47F9-BAB6-67AA9964BA56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall.Sql.EventProcessing.Tests", "Shuttle.Recall.Sql.EventProcessing.Tests\Shuttle.Recall.Sql.EventProcessing.Tests.csproj", "{55E9703B-ABED-47F9-BAB6-67AA9964BA56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
