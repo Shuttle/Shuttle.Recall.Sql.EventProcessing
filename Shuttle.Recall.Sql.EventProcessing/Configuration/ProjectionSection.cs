@@ -13,10 +13,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
         [ConfigurationProperty("eventProjectionConnectionStringName", IsRequired = false, DefaultValue = "EventStore")]
         public string EventProjectionConnectionStringName => (string) this["eventProjectionConnectionStringName"];
 
-        [ConfigurationProperty("eventProjectionPrefetchCount", IsRequired = false,
-            DefaultValue = ProjectionConfiguration.DefaultEventProjectionPrefetchCount)]
-        public int EventProjectionPrefetchCount => (int) this["eventProjectionPrefetchCount"];
-
         public static ProjectionConfiguration Configuration(IConnectionConfigurationProvider provider)
         {
             Guard.AgainstNull(provider, nameof(provider));
@@ -31,7 +27,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
             {
                 eventStoreConnectionStringName = section.EventStoreConnectionStringName;
                 eventProjectionConnectionStringName = section.EventProjectionConnectionStringName;
-                configuration.EventProjectionPrefetchCount = section.EventProjectionPrefetchCount;
             }
 
             var connectionConfiguration = provider.Get(eventStoreConnectionStringName);

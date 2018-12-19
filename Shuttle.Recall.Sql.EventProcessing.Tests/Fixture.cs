@@ -115,7 +115,6 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
                     connectionConfigurationProvider.Object.Get("EventStoreProjection").ConnectionString,
                 EventProjectionProviderName =
                     connectionConfigurationProvider.Object.Get("EventStoreProjection").ProviderName,
-                EventProjectionPrefetchCount = 1,
                 EventStoreConnectionString = connectionConfigurationProvider.Object.Get("Shuttle").ConnectionString,
                 EventStoreProviderName = connectionConfigurationProvider.Object.Get("Shuttle").ProviderName
             });

@@ -9,7 +9,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class EventProcessingObserver :
         IPipelineObserver<OnAfterStartTransactionScope>,
-        IPipelineObserver<OnAfterGetProjectionSequenceNumber>,
         IPipelineObserver<OnAfterGetProjectionPrimitiveEvent>,
         IPipelineObserver<OnDisposeTransactionScope>,
         IPipelineObserver<OnAbortPipeline>
@@ -40,16 +39,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
             }
 
             _databaseContextFactory.DatabaseContextCache.Use("EventProjectionDatabaseContext");
-        }
-
-        public void Execute(OnAfterGetProjectionSequenceNumber pipelineEvent)
-        {
-            if (_projectionConfiguration.IsSharedConnection)
-            {
-                return;
-            }
-
-            _databaseContextFactory.DatabaseContextCache.Use("EventStoreDatabaseContext");
         }
 
         public void Execute(OnAfterStartTransactionScope pipelineEvent)

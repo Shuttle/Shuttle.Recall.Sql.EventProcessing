@@ -19,7 +19,17 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public long GetSequenceNumber(string projectionName)
         {
-            return _databaseGateway.GetScalarUsing<long>(_queryFactory.GetSequenceNumber(projectionName));
+            return ;
+        }
+
+        public Projection Find(string name)
+        {
+            var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(name));
+        }
+
+        public void Save(Projection projection)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void SetSequenceNumber(string projectionName, long sequenceNumber)
