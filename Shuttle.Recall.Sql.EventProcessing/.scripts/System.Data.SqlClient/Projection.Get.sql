@@ -1,7 +1,9 @@
 ﻿select
-	Name,
-	SequenceNumber 
+	[Name],
+	SequenceNumber,
+	MachineName,
+	BaseDirectory
 from 
-	[dbo].[ProjectionPosition] 
+	[dbo].[Projection]
 where 
 	[Name] = @Name

@@ -21,9 +21,9 @@ namespace Shuttle.Recall.Sql.EventProcessing
 				.AddParameterValue(ProjectionPositionColumns.SequenceNumber, sequenceNumber);
 		}
 
-	    public IQuery GetSequenceNumber(string name)
+	    public IQuery Get(string name)
 	    {
-	        return RawQuery.Create(_scriptProvider.Get("Projection.GetSequenceNumber"))
+	        return RawQuery.Create(_scriptProvider.Get("Projection.Get"))
 	            .AddParameterValue(ProjectionPositionColumns.Name, name);
 	    }
     }

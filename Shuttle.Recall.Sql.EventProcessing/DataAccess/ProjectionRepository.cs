@@ -17,14 +17,16 @@ namespace Shuttle.Recall.Sql.EventProcessing
             _queryFactory = queryFactory;
         }
 
-        public long GetSequenceNumber(string projectionName)
-        {
-            return ;
-        }
-
         public Projection Find(string name)
         {
             var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(name));
+
+            if (row == null)
+            {
+                return null;
+            }
+
+            return new Projection();
         }
 
         public void Save(Projection projection)
