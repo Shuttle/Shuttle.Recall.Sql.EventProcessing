@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Transactions;
 using NUnit.Framework;
 using Shuttle.Core.Container;
@@ -7,9 +8,8 @@ using Shuttle.Core.Transactions;
 using Shuttle.Recall.Sql.Storage;
 using Shuttle.Recall.Tests;
 
-#if (NETCOREAPP2_0 || NETSTANDARD2_0)
+#if (NETCOREAPP2_1 || NETSTANDARD2_0)
 using Moq;
-using Shuttle.Core.Data.SqlClient;
 #endif
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
@@ -23,13 +23,15 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
             DatabaseGateway = new DatabaseGateway();
             DatabaseContextCache = new ThreadStaticDatabaseContextCache();
 
-#if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
+#if (!NETCOREAPP2_1 && !NETSTANDARD2_0)
             DatabaseContextFactory = new DatabaseContextFactory(
                 new ConnectionConfigurationProvider(),
                 new DbConnectionFactory(),
                 new DbCommandFactory(),
                 new ThreadStaticDatabaseContextCache());
 #else
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
+
             var mockConnectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
 
             mockConnectionConfigurationProvider.Setup(m => m.Get(It.IsAny<string>())).Returns(
@@ -48,7 +50,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             DatabaseContextFactory = new DatabaseContextFactory(
                 ConnectionConfigurationProvider,
-                new DbConnectionFactory(new DbProviderFactories()),
+                new DbConnectionFactory(),
                 new DbCommandFactory(),
                 new ThreadStaticDatabaseContextCache());
 #endif
@@ -73,7 +75,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             using (DatabaseContextFactory.Create(EventStoreProjectionConnectionStringName))
             {
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from ProjectionPosition"));
+                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from Projection"));
             }
         }
 
@@ -90,8 +92,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         {
             registry.RegisterInstance<ITransactionScopeFactory>(new DefaultTransactionScopeFactory(false, IsolationLevel.Unspecified, TimeSpan.Zero));
 
-#if (NETCOREAPP2_0 || NETSTANDARD2_0)
-            registry.Register<IDbProviderFactories, DbProviderFactories>();
+#if (NETCOREAPP2_1 || NETSTANDARD2_0)
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
 
             var connectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
 

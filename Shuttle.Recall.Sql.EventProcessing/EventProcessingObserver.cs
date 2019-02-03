@@ -9,7 +9,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class EventProcessingObserver :
         IPipelineObserver<OnAfterStartTransactionScope>,
-        IPipelineObserver<OnAfterGetProjectionPrimitiveEvent>,
+        IPipelineObserver<OnAfterGetProjectionEvent>,
         IPipelineObserver<OnDisposeTransactionScope>,
         IPipelineObserver<OnAbortPipeline>
     {
@@ -31,7 +31,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
             DisposeDatabaseContext(pipelineEvent);
         }
 
-        public void Execute(OnAfterGetProjectionPrimitiveEvent pipelineEvent)
+        public void Execute(OnAfterGetProjectionEvent pipelineEvent)
         {
             if (_projectionConfiguration.IsSharedConnection)
             {
@@ -51,6 +51,11 @@ namespace Shuttle.Recall.Sql.EventProcessing
             }
             else
             {
+                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext",
+                    _databaseContextFactory.Create(_projectionConfiguration.EventProjectionProviderName,
+                            _projectionConfiguration.EventProjectionConnectionString)
+                        .WithName("EventProjectionDatabaseContext"));
+
                 using (new TransactionScope(TransactionScopeOption.Suppress))
                 {
                     pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext",
@@ -58,11 +63,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
                                 _projectionConfiguration.EventStoreConnectionString)
                             .WithName("EventStoreDatabaseContext"));
                 }
-
-                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext",
-                    _databaseContextFactory.Create(_projectionConfiguration.EventProjectionProviderName,
-                            _projectionConfiguration.EventProjectionConnectionString)
-                        .WithName("EventProjectionDatabaseContext"));
             }
         }
 

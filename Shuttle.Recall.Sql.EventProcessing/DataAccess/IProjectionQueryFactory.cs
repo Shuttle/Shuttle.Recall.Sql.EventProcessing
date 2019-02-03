@@ -6,5 +6,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
 	{
 		IQuery SetSequenceNumber(string name, long sequenceNumber);
 	    IQuery Get(string name);
+	    IQuery Save(Projection projection);
 	}
 }

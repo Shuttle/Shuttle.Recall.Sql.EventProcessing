@@ -26,16 +26,24 @@ namespace Shuttle.Recall.Sql.EventProcessing
                 return null;
             }
 
-            return new Projection();
+            return new Projection(
+                Columns.Name.MapFrom(row),
+                Columns.SequenceNumber.MapFrom(row),
+                Columns.MachineName.MapFrom(row),
+                Columns.BaseDirectory.MapFrom(row));
         }
 
         public void Save(Projection projection)
         {
-            throw new System.NotImplementedException();
+            Guard.AgainstNull(projection, nameof(projection));
+
+            _databaseGateway.ExecuteUsing(_queryFactory.Save(projection));
         }
 
         public void SetSequenceNumber(string projectionName, long sequenceNumber)
         {
+            Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
+
             _databaseGateway.ExecuteUsing(_queryFactory.SetSequenceNumber(projectionName, sequenceNumber));
         }
     }
