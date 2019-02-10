@@ -29,7 +29,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
 	    public IQuery Save(Projection projection)
 	    {
-	        return RawQuery.Create(_scriptProvider.Get("Projection.Get"))
+	        return RawQuery.Create(_scriptProvider.Get("Projection.Save"))
 	            .AddParameterValue(Columns.Name, projection.Name)
 	            .AddParameterValue(Columns.SequenceNumber, projection.SequenceNumber)
 	            .AddParameterValue(Columns.MachineName, projection.MachineName)
