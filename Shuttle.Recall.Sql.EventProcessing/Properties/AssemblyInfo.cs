@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyVersion("10.2.0.0")]
-[assembly: AssemblyCopyright("Copyright © Eben Roux 2018")]
+[assembly: AssemblyCopyright("Copyright © Eben Roux 2019")]
 [assembly: AssemblyProduct("Shuttle.Recall.Sql.EventProcessing")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]
