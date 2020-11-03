@@ -61,6 +61,6 @@ processor.Dispose();
 			providerName="System.Data.SqlClient" />
 	</connectionStrings>
 </configuration>
-~~~
+```
 
 The `IDatabaseContextFactory` and `IDatabaseGateway` implementation follow the structures as defined in the [Shuttle.Core.Data](http://shuttle.github.io/shuttle-core/overview-data/) package.
