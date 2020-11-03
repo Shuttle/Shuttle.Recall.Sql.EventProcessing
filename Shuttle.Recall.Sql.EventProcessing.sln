@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall.Sql.EventProcessing", "Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj", "{981D5846-D213-4B3D-B21F-44CDE06DDE32}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Recall.Sql.EventProcessing.Tests", "Shuttle.Recall.Sql.EventProcessing.Tests\Shuttle.Recall.Sql.EventProcessing.Tests.csproj", "{55E9703B-ABED-47F9-BAB6-67AA9964BA56}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3BC7EF39-FBD7-493E-BB56-4290826DBC72}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
