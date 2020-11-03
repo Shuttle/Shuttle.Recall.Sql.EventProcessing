@@ -1,8 +1,6 @@
 ﻿select
 	[Name],
-	SequenceNumber,
-	MachineName,
-	BaseDirectory
+	SequenceNumber
 from 
 	[dbo].[Projection]
 where 

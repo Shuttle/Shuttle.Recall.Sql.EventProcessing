@@ -28,9 +28,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
             return new Projection(
                 Columns.Name.MapFrom(row),
-                Columns.SequenceNumber.MapFrom(row),
-                Columns.MachineName.MapFrom(row),
-                Columns.BaseDirectory.MapFrom(row));
+                Columns.SequenceNumber.MapFrom(row));
         }
 
         public void Save(Projection projection)

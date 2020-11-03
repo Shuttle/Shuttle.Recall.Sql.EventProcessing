@@ -71,9 +71,17 @@ namespace Shuttle.Recall.Sql.EventProcessing
             DisposeDatabaseContext(pipelineEvent);
         }
 
-        private static void DisposeDatabaseContext(PipelineEvent pipelineEvent)
+        private void DisposeDatabaseContext(PipelineEvent pipelineEvent)
         {
-            pipelineEvent.Pipeline.State.Get<IDatabaseContext>().AttemptDispose();
+            if (_projectionConfiguration.IsSharedConnection)
+            {
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>().AttemptDispose();
+            }
+            else
+            {
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").AttemptDispose();
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").AttemptDispose();
+            }
         }
     }
 }

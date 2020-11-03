@@ -31,9 +31,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 	    {
 	        return RawQuery.Create(_scriptProvider.Get("Projection.Save"))
 	            .AddParameterValue(Columns.Name, projection.Name)
-	            .AddParameterValue(Columns.SequenceNumber, projection.SequenceNumber)
-	            .AddParameterValue(Columns.MachineName, projection.MachineName)
-	            .AddParameterValue(Columns.BaseDirectory, projection.BaseDirectory);
+	            .AddParameterValue(Columns.SequenceNumber, projection.SequenceNumber);
 	    }
     }
 }

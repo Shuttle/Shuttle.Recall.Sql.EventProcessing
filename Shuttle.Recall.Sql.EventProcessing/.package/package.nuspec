@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<package>
+	<metadata>
+		<id>Shuttle.Recall.Sql.EventProcessing</id>
+		<version>12.0.0</version>
+		<authors>Eben Roux</authors>
+		<owners>Eben Roux</owners>
+		<license type="expression">BSD-3-Clause</license>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<icon>images\logo.png</icon>
+		<repository type="git" url="https://github.com/Shuttle/Shuttle.Recall.Sql.EventProcessing.git" />
+		<description>Sql-based implementation of the event store Shuttle.Recall projection interfaces.</description>
+		<copyright>Copyright (c) 2020, Eben Roux</copyright>
+		<tags>eventsourcing eventsource event-sourcing event-source eventstore event-store project event-processing eventprocessing</tags>
+		<dependencies>
+      <dependency id="Shuttle.Core.Data" version="11.0.4" />
+      <dependency id="Shuttle.Recall" version="12.0.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="12.0.0" />
+      <dependency id="System.Configuration.ConfigurationManager" version="4.5.0" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\..\..\.media\logo.png" target="images" />
+		<file src="lib\**\*.*" target="lib" />
+	</files>
+</package>

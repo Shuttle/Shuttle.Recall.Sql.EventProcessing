@@ -10,23 +10,17 @@
 	update
 		[dbo].[Projection]
 	set
-		SequenceNumber = @SequenceNumber,
-		MachineName = @MachineName,
-		BaseDirectory = @BaseDirectory
+		SequenceNumber = @SequenceNumber
 	where
 		[Name] = @Name
 else
 	insert into [dbo].[Projection]
 	(
 		[Name],
-		SequenceNumber,
-		MachineName,
-		BaseDirectory
+		SequenceNumber
 	)
 	values
 	(
 		@Name,
-		@SequenceNumber,
-		@MachineName,
-		@BaseDirectory
+		@SequenceNumber
 	)

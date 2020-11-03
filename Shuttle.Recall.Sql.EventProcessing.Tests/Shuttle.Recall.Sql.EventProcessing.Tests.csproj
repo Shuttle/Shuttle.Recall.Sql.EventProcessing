@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,19 +11,14 @@
         <PackageReference Include="NUnit3TestAdapter" Version="3.14.0" />
         <PackageReference Include="Shuttle.Core.Castle" Version="10.0.5" />
         <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
-        <PackageReference Include="Shuttle.Recall.Tests" Version="11.0.0" />
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0'" />
-        <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+        <PackageReference Include="Shuttle.Recall.Tests" Version="12.0.0" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+        <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
         <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shuttle.Recall.Sql.EventProcessing\Shuttle.Recall.Sql.EventProcessing.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netstandard2.1' and '$(TargetFramework)' != 'netcoreapp2.0'" />
-        <Reference Include="System.Transactions" Condition="'$(TargetFramework)' != 'netstandard2.1'" />
     </ItemGroup>
 
 </Project>

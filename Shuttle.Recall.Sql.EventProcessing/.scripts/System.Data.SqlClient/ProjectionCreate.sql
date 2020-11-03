@@ -3,8 +3,6 @@ BEGIN
 	CREATE TABLE [dbo].[Projection](
 		[Name] [varchar](650) NOT NULL,
 		[SequenceNumber] [bigint] NOT NULL,
-		[MachineName] [varchar](255) NULL,
-		[BaseDirectory] [varchar](260) NULL,
 	 CONSTRAINT [PK_Projection] PRIMARY KEY NONCLUSTERED 
 	(
 		[Name] ASC
@@ -15,11 +13,12 @@ GO
 
 IF OBJECT_ID (N'[dbo].[DF_Projection_SequenceNumber]', N'D') IS NULL
 BEGIN
-ALTER TABLE [dbo].[Projection] ADD  CONSTRAINT [DF_Projection_SequenceNumber]  DEFAULT ((0)) FOR [SequenceNumber]
+	ALTER TABLE [dbo].[Projection] ADD  CONSTRAINT [DF_Projection_SequenceNumber]  DEFAULT ((0)) FOR [SequenceNumber]
 END
 GO
 
 IF OBJECT_ID (N'[dbo].[ProjectionPosition]', N'U') IS NOT NULL
+BEGIN
 	INSERT INTO Projection
 	(
 		[Name],
@@ -30,6 +29,19 @@ IF OBJECT_ID (N'[dbo].[ProjectionPosition]', N'U') IS NOT NULL
 			SequenceNumber
 		FROM
 			[dbo].[ProjectionPosition]
+END
 
 IF OBJECT_ID (N'[dbo].[ProjectionPosition]', N'U') IS NOT NULL
+BEGIN
 	DROP TABLE [dbo].[ProjectionPosition]
+END
+
+IF COL_LENGTH(N'[dbo].[Projection]', 'MachineName') IS NOT NULL
+BEGIN
+	ALTER TABLE [dbo].[Projection] DROP COLUMN [MachineName]
+END
+
+IF COL_LENGTH(N'[dbo].[Projection]', 'BaseDirectory') IS NOT NULL
+BEGIN
+	ALTER TABLE [dbo].[Projection] DROP COLUMN [BaseDirectory]
+END
