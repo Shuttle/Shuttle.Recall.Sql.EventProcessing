@@ -19,6 +19,7 @@
 	</metadata>
 	<files>
 		<file src="..\..\..\.media\logo.png" target="images" />
+    <file src="scripts\**\*.sql" target="scripts" />
 		<file src="lib\**\*.*" target="lib" />
 	</files>
 </package>
