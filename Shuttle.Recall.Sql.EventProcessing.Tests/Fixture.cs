@@ -30,8 +30,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
                         name,
                         "System.Data.SqlClient",
                         name.Equals(EventStoreProjectionConnectionStringName)
-                            ? "Data Source=.;Initial Catalog=ShuttleProjection;Integrated Security=SSPI;"
-                            : "Data Source=.;Initial Catalog=Shuttle;Integrated Security=SSPI;"));
+                            ? "Data Source=.\\sqlexpress;Initial Catalog=ShuttleProjection;Integrated Security=SSPI;"
+                            : "Data Source=.\\sqlexpress;Initial Catalog=Shuttle;Integrated Security=SSPI;"));
 
             ConnectionConfigurationProvider = connectionConfigurationProvider.Object;
 
