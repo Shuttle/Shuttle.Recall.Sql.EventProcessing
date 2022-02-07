@@ -2,7 +2,7 @@
 
 A Sql Server implementation of the `Shuttle.Recall` event sourcing mechanism.
 
-### Event Sourcing / Processing
+## Event Sourcing / Processing
 
 ``` c#
 // use any of the supported DI containers
@@ -64,3 +64,10 @@ processor.Dispose();
 ```
 
 The `IDatabaseContextFactory` and `IDatabaseGateway` implementation follow the structures as defined in the [Shuttle.Core.Data](http://shuttle.github.io/shuttle-core/overview-data/) package.
+
+# Registration / Activation
+
+The required components may be registered by calling `ComponentRegistryExtensions.RegisterEventProcessing(IComponentRegistry)`.
+
+In order for the event processing module to attach to the `IPipelineFactory` you would need to resolve it using `IComponentResolver.Resolve<EventProcessingModule>()`.
+

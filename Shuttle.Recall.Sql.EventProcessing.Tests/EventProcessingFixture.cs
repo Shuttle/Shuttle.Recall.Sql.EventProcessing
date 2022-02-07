@@ -1,6 +1,9 @@
 ﻿using Castle.Windsor;
 using NUnit.Framework;
 using Shuttle.Core.Castle;
+using Shuttle.Core.Container;
+using Shuttle.Core.Data;
+using Shuttle.Recall.Sql.Storage;
 using Shuttle.Recall.Tests;
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
@@ -14,9 +17,12 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             Bootstrap(container);
 
-            EventStore.Register(container);
+            container.RegisterDataAccess();
+            container.RegisterEventStore();
+            container.RegisterEventStoreStorage();
+            container.RegisterEventProcessing();
 
-            var eventStore = EventStore.Create(container);
+            var eventStore = container.Resolve<IEventStore>();
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
             {
@@ -25,8 +31,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             using (DatabaseContextFactory.Create(EventStoreProjectionConnectionStringName))
             {
-                
-                RecallFixture.ExerciseEventProcessing(EventProcessor.Create(container), 300);
+                RecallFixture.ExerciseEventProcessing(container.Resolve<IEventProcessor>(), 300);
             }
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
