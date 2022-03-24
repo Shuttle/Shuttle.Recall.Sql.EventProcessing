@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
@@ -6,6 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include=".scripts\Microsoft.Data.SqlClient\Projection.Get.sql" />
+        <EmbeddedResource Include=".scripts\Microsoft.Data.SqlClient\Projection.Save.sql" />
+        <EmbeddedResource Include=".scripts\Microsoft.Data.SqlClient\Projection.SetSequenceNumber.sql" />
         <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.Save.sql" />
         <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.Get.sql" />
         <EmbeddedResource Include=".scripts\System.Data.SqlClient\Projection.SetSequenceNumber.sql" />
@@ -14,6 +17,7 @@
         <None Include=".package\package.nuspec.template" />
         <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
         <None Include=".package\Shuttle.NuGetPackager.targets" />
+        <None Include=".scripts\Microsoft.Data.SqlClient\ProjectionCreate.sql" />
         <None Include=".scripts\System.Data.SqlClient\ProjectionCreate.sql" />
     </ItemGroup>
 

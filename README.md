@@ -1,8 +1,12 @@
-# Shuttle.Recall.Sql.EventProcessing
+# Sql Server
+
+```
+PM> Install-Package Shuttle.Recall.Sql.EventProcessing
+```
 
 A Sql Server implementation of the `Shuttle.Recall` event sourcing mechanism.
 
-## Event Sourcing / Processing
+## Event Processing
 
 ``` c#
 // use any of the supported DI containers
@@ -33,7 +37,7 @@ processor.Start();
 processor.Dispose();
 ```
 
-### Application Configuration File
+## Application Configuration File
 
 ``` xml
 <configuration>
@@ -63,9 +67,9 @@ processor.Dispose();
 </configuration>
 ```
 
-The `IDatabaseContextFactory` and `IDatabaseGateway` implementation follow the structures as defined in the [Shuttle.Core.Data](http://shuttle.github.io/shuttle-core/overview-data/) package.
+The `IDatabaseContextFactory` and `IDatabaseGateway` implementation follow the structures as defined in the [Shuttle.Core.Data](https://shuttle.github.io/shuttle-core/data/shuttle-core-data.html) package.
 
-# Registration / Activation
+## Registration / Activation
 
 The required components may be registered by calling `ComponentRegistryExtensions.RegisterEventProcessing(IComponentRegistry)`.
 
