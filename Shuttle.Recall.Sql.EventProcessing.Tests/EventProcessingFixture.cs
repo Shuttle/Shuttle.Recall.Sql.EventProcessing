@@ -22,6 +22,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
             container.RegisterEventStoreStorage();
             container.RegisterEventProcessing();
 
+            container.Resolve<EventProcessingModule>();
+
             var eventStore = container.Resolve<IEventStore>();
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
