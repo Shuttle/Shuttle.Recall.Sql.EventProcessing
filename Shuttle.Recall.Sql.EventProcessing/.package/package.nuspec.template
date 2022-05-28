@@ -9,6 +9,7 @@
 		<license type="expression">BSD-3-Clause</license>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<icon>images\logo.png</icon>
+		<readme>docs\README.md</readme>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Recall.Sql.EventProcessing.git" />
 		<description>Sql-based implementation of the event store Shuttle.Recall projection interfaces.</description>
 		<copyright>Copyright (c) #{Year}#, Eben Roux</copyright>
@@ -19,7 +20,8 @@
 	</metadata>
 	<files>
 		<file src="..\..\..\.media\logo.png" target="images" />
-    <file src="scripts\**\*.sql" target="scripts" />
+		<file src="..\..\..\README.md" target="docs\" />
+		<file src="scripts\**\*.sql" target="scripts" />
 		<file src="lib\**\*.*" target="lib" />
 	</files>
 </package>

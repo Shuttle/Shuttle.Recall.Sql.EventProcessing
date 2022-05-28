@@ -1,8 +1,7 @@
-﻿using Castle.Windsor;
+﻿using Ninject;
 using NUnit.Framework;
-using Shuttle.Core.Castle;
-using Shuttle.Core.Container;
 using Shuttle.Core.Data;
+using Shuttle.Core.Ninject;
 using Shuttle.Recall.Sql.Storage;
 using Shuttle.Recall.Tests;
 
@@ -13,7 +12,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         [Test]
         public void ExerciseEventProcessing()
         {
-            var container = new WindsorComponentContainer(new WindsorContainer());
+            var container = new NinjectComponentContainer(new StandardKernel());
 
             Bootstrap(container);
 
