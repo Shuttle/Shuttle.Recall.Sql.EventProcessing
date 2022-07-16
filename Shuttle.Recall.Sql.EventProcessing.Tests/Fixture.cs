@@ -1,12 +1,9 @@
-﻿using System;
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Data.SqlClient;
-using System.Transactions;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Core.Container;
 using Shuttle.Core.Data;
-using Shuttle.Core.Transactions;
 using Shuttle.Recall.Tests;
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests
@@ -19,27 +16,28 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
-            DatabaseGateway = new DatabaseGateway();
             DatabaseContextCache = new ThreadStaticDatabaseContextCache();
+            DatabaseGateway = new DatabaseGateway(DatabaseContextCache);
 
-            var connectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
+            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
-            connectionConfigurationProvider.Setup(m => m.Get(It.IsAny<string>())).Returns(
-                (string name) =>
-                    new ConnectionConfiguration(
-                        name,
-                        "System.Data.SqlClient",
-                        name.Equals(EventStoreProjectionConnectionStringName)
-                            ? "server=.;Initial Catalog=ShuttleProjection;user id=sa;password=Pass!000"
-                            : "server=.;Initial Catalog=Shuttle;user id=sa;password=Pass!000"));
+            connectionStringOptions.Setup(m => m.Get(It.IsAny<string>())).Returns(
+                (string name) => new ConnectionStringOptions
+                {
+                    Name = name,
+                    ProviderName = "System.Data.SqlClient",
+                    ConnectionString = name.Equals(EventProjectionConnectionStringName)
+                        ? "server=.;Initial Catalog=ShuttleProjection;user id=sa;password=Pass!000"
+                        : "server=.;Initial Catalog=Shuttle;user id=sa;password=Pass!000"
+                });
 
-            ConnectionConfigurationProvider = connectionConfigurationProvider.Object;
+            ConnectionStringOptions = connectionStringOptions.Object;
 
             DatabaseContextFactory = new DatabaseContextFactory(
-                ConnectionConfigurationProvider,
+                ConnectionStringOptions,
                 new DbConnectionFactory(),
-                new DbCommandFactory(),
-                new ThreadStaticDatabaseContextCache());
+                new DbCommandFactory(Options.Create(new CommandOptions())),
+                DatabaseContextCache);
 
             ClearDataStore();
         }
@@ -49,43 +47,28 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         {
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
             {
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from EventStore where Id = @Id")
+                DatabaseGateway.Execute(RawQuery.Create("delete from EventStore where Id = @Id")
                     .AddParameterValue(Columns.Id, RecallFixture.OrderId));
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from EventStore where Id = @Id")
+                DatabaseGateway.Execute(RawQuery.Create("delete from EventStore where Id = @Id")
                     .AddParameterValue(Columns.Id, RecallFixture.OrderProcessId));
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from SnapshotStore where Id = @Id")
+                DatabaseGateway.Execute(RawQuery.Create("delete from SnapshotStore where Id = @Id")
                     .AddParameterValue(Columns.Id, RecallFixture.OrderId));
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from SnapshotStore where Id = @Id")
+                DatabaseGateway.Execute(RawQuery.Create("delete from SnapshotStore where Id = @Id")
                     .AddParameterValue(Columns.Id, RecallFixture.OrderProcessId));
             }
 
-            using (DatabaseContextFactory.Create(EventStoreProjectionConnectionStringName))
+            using (DatabaseContextFactory.Create(EventProjectionConnectionStringName))
             {
-                DatabaseGateway.ExecuteUsing(RawQuery.Create("delete from Projection"));
+                DatabaseGateway.Execute(RawQuery.Create("delete from Projection"));
             }
         }
 
         public IDatabaseContextCache DatabaseContextCache { get; private set; }
         public DatabaseGateway DatabaseGateway { get; private set; }
         public IDatabaseContextFactory DatabaseContextFactory { get; private set; }
-        public IConnectionConfigurationProvider ConnectionConfigurationProvider { get; private set; }
+        public IOptionsMonitor<ConnectionStringOptions> ConnectionStringOptions { get; private set; }
 
         public string EventStoreConnectionStringName = "EventStore";
-        public string EventStoreProjectionConnectionStringName = "EventStoreProjection";
-
-        protected void Bootstrap(IComponentRegistry registry)
-        {
-            registry.RegisterInstance<ITransactionScopeFactory>(new DefaultTransactionScopeFactory(false, IsolationLevel.Unspecified, TimeSpan.Zero));
-
-            registry.AttemptRegisterInstance(ConnectionConfigurationProvider);
-
-            registry.RegisterInstance<IProjectionConfiguration>(new ProjectionConfiguration
-            {
-                EventProjectionConnectionString = ConnectionConfigurationProvider.Get(EventStoreProjectionConnectionStringName).ConnectionString,
-                EventProjectionProviderName = ConnectionConfigurationProvider.Get(EventStoreProjectionConnectionStringName).ProviderName,
-                EventStoreConnectionString = ConnectionConfigurationProvider.Get(EventStoreConnectionStringName).ConnectionString,
-                EventStoreProviderName = ConnectionConfigurationProvider.Get(EventStoreConnectionStringName).ProviderName
-            });
-        }
+        public string EventProjectionConnectionStringName = "EventStoreProjection";
     }
 }

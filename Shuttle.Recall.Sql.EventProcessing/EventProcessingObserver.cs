@@ -1,4 +1,6 @@
+using System;
 using System.Transactions;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
@@ -14,16 +16,47 @@ namespace Shuttle.Recall.Sql.EventProcessing
         IPipelineObserver<OnAbortPipeline>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IProjectionConfiguration _projectionConfiguration;
+        private readonly EventProcessingOptions _eventProcessingOptions;
+        private readonly string _eventStoreProviderName;
+        private readonly string _eventStoreConnectionString;
+        private readonly string _eventProjectionProviderName;
+        private readonly string _eventProjectionConnectionString;
 
-        public EventProcessingObserver(IDatabaseContextFactory databaseContextFactory,
-            IProjectionConfiguration projectionConfiguration)
+        public EventProcessingObserver(IOptions<EventProcessingOptions> projectionOptions, IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IDatabaseContextFactory databaseContextFactory)
         {
+            Guard.AgainstNull(projectionOptions, nameof(projectionOptions));
+            Guard.AgainstNull(projectionOptions.Value, nameof(projectionOptions.Value));
+            Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions));
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(projectionConfiguration, nameof(projectionConfiguration));
 
+            _eventProcessingOptions = projectionOptions.Value;
             _databaseContextFactory = databaseContextFactory;
-            _projectionConfiguration = projectionConfiguration;
+
+            var eventStoreConnectionStringOptions =
+                connectionStringOptions.Get(_eventProcessingOptions.EventStoreConnectionStringName);
+
+            if (eventStoreConnectionStringOptions == null)
+            {
+                throw new InvalidOperationException(string.Format(
+                    Core.Data.Resources.ConnectionStringMissingException,
+                    _eventProcessingOptions.EventStoreConnectionStringName));
+            }
+
+            _eventStoreProviderName = eventStoreConnectionStringOptions.ProviderName;
+            _eventStoreConnectionString = eventStoreConnectionStringOptions.ConnectionString;
+
+            var eventProjectionConnectionStringOptions =
+                connectionStringOptions.Get(_eventProcessingOptions.EventProjectionConnectionStringName);
+
+            if (eventProjectionConnectionStringOptions == null)
+            {
+                throw new InvalidOperationException(string.Format(
+                    Core.Data.Resources.ConnectionStringMissingException,
+                    _eventProcessingOptions.EventProjectionConnectionStringName));
+            }
+
+            _eventProjectionProviderName = eventProjectionConnectionStringOptions.ProviderName;
+            _eventProjectionConnectionString = eventProjectionConnectionStringOptions.ConnectionString;
         }
 
         public void Execute(OnAbortPipeline pipelineEvent)
@@ -33,7 +66,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public void Execute(OnAfterGetProjectionEvent pipelineEvent)
         {
-            if (_projectionConfiguration.IsSharedConnection)
+            if (_eventProcessingOptions.IsSharedConnection())
             {
                 return;
             }
@@ -43,24 +76,20 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public void Execute(OnAfterStartTransactionScope pipelineEvent)
         {
-            if (_projectionConfiguration.IsSharedConnection)
+            if (_eventProcessingOptions.IsSharedConnection())
             {
-                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(
-                    _projectionConfiguration.EventStoreProviderName,
-                    _projectionConfiguration.EventStoreConnectionString));
+                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_eventStoreProviderName, _eventStoreConnectionString));
             }
             else
             {
                 pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext",
-                    _databaseContextFactory.Create(_projectionConfiguration.EventProjectionProviderName,
-                            _projectionConfiguration.EventProjectionConnectionString)
+                    _databaseContextFactory.Create(_eventProjectionProviderName,  _eventProjectionConnectionString)
                         .WithName("EventProjectionDatabaseContext"));
 
                 using (new TransactionScope(TransactionScopeOption.Suppress))
                 {
                     pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext",
-                        _databaseContextFactory.Create(_projectionConfiguration.EventStoreProviderName,
-                                _projectionConfiguration.EventStoreConnectionString)
+                        _databaseContextFactory.Create(_eventStoreProviderName, _eventStoreConnectionString)
                             .WithName("EventStoreDatabaseContext"));
                 }
             }
@@ -73,7 +102,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         private void DisposeDatabaseContext(PipelineEvent pipelineEvent)
         {
-            if (_projectionConfiguration.IsSharedConnection)
+            if (_eventProcessingOptions.IsSharedConnection())
             {
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>().AttemptDispose();
             }

@@ -19,7 +19,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public Projection Find(string name)
         {
-            var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(name));
+            var row = _databaseGateway.GetRow(_queryFactory.Get(name));
 
             if (row == null)
             {
@@ -35,14 +35,19 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(projection, nameof(projection));
 
-            _databaseGateway.ExecuteUsing(_queryFactory.Save(projection));
+            _databaseGateway.Execute(_queryFactory.Save(projection));
         }
 
         public void SetSequenceNumber(string projectionName, long sequenceNumber)
         {
             Guard.AgainstNullOrEmptyString(projectionName, nameof(projectionName));
 
-            _databaseGateway.ExecuteUsing(_queryFactory.SetSequenceNumber(projectionName, sequenceNumber));
+            _databaseGateway.Execute(_queryFactory.SetSequenceNumber(projectionName, sequenceNumber));
+        }
+
+        public long GetSequenceNumber(string projectionName)
+        {
+            return _databaseGateway.GetScalar<long?>(_queryFactory.GetSequenceNumber(projectionName)) ?? 0;
         }
     }
 }
