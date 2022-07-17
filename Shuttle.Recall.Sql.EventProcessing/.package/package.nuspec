@@ -15,10 +15,9 @@
 		<copyright>Copyright (c) 2022, Eben Roux</copyright>
 		<tags>eventsourcing eventsource event-sourcing event-source eventstore event-store project event-processing eventprocessing</tags>
 		<dependencies>
-      <dependency id="Shuttle.Core.Data" version="12.1.0" />
-      <dependency id="Shuttle.Recall" version="15.0.0" />
-      <dependency id="Shuttle.Recall.Sql.Storage" version="15.0.0" />
-      <dependency id="System.Configuration.ConfigurationManager" version="6.0.0" />
+      <dependency id="Shuttle.Core.Data" version="13.0.0" />
+      <dependency id="Shuttle.Recall" version="16.0.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="16.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
