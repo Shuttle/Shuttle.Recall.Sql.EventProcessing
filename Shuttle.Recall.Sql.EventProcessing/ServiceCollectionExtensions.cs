@@ -10,7 +10,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection UseSqlEventProcessing(this IServiceCollection services, EventProcessingOptions eventProcessingOptions)
+        public static IServiceCollection AddSqlEventProcessing(this IServiceCollection services, EventProcessingOptions eventProcessingOptions)
         {
             Guard.AgainstNull(services, nameof(services));
             Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions));
