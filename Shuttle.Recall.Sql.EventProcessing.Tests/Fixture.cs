@@ -59,7 +59,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             using (DatabaseContextFactory.Create(EventProjectionConnectionStringName))
             {
-                DatabaseGateway.Execute(RawQuery.Create("delete from Projection"));
+                DatabaseGateway.Execute(RawQuery.Create("delete from Projection where [Name] = 'recall-fixture'"));
             }
         }
 

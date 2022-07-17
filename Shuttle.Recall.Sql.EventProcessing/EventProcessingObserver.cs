@@ -11,6 +11,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class EventProcessingObserver :
         IPipelineObserver<OnAfterStartTransactionScope>,
+        IPipelineObserver<OnBeforeStartEventProcessingEvent>,
+        IPipelineObserver<OnAfterStartEventProcessingEvent>,
         IPipelineObserver<OnAfterGetProjectionEvent>,
         IPipelineObserver<OnDisposeTransactionScope>,
         IPipelineObserver<OnAbortPipeline>
@@ -61,11 +63,15 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public void Execute(OnAbortPipeline pipelineEvent)
         {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
             DisposeDatabaseContext(pipelineEvent);
         }
 
         public void Execute(OnAfterGetProjectionEvent pipelineEvent)
         {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
             if (_eventProcessingOptions.IsSharedConnection())
             {
                 return;
@@ -76,6 +82,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public void Execute(OnAfterStartTransactionScope pipelineEvent)
         {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
             if (_eventProcessingOptions.IsSharedConnection())
             {
                 pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_eventStoreProviderName, _eventStoreConnectionString));
@@ -83,7 +91,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
             else
             {
                 pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext",
-                    _databaseContextFactory.Create(_eventProjectionProviderName,  _eventProjectionConnectionString)
+                    _databaseContextFactory.Create(_eventProjectionProviderName, _eventProjectionConnectionString)
                         .WithName("EventProjectionDatabaseContext"));
 
                 using (new TransactionScope(TransactionScopeOption.Suppress))
@@ -97,11 +105,15 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public void Execute(OnDisposeTransactionScope pipelineEvent)
         {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
             DisposeDatabaseContext(pipelineEvent);
         }
 
         private void DisposeDatabaseContext(PipelineEvent pipelineEvent)
         {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
             if (_eventProcessingOptions.IsSharedConnection())
             {
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>().AttemptDispose();
@@ -111,6 +123,30 @@ namespace Shuttle.Recall.Sql.EventProcessing
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").AttemptDispose();
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").AttemptDispose();
             }
+        }
+
+        public void Execute(OnAfterStartEventProcessingEvent pipelineEvent)
+        {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
+            if (_eventProcessingOptions.IsSharedConnection())
+            {
+                return;
+            }
+
+            _databaseContextFactory.DatabaseContextCache.Use("EventStoreDatabaseContext");
+       }
+
+        public void Execute(OnBeforeStartEventProcessingEvent pipelineEvent)
+        {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
+            if (_eventProcessingOptions.IsSharedConnection())
+            {
+                return;
+            }
+
+            _databaseContextFactory.DatabaseContextCache.Use("EventProjectionDatabaseContext");
         }
     }
 }
