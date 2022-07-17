@@ -27,15 +27,13 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
                 builder.Options.Enabled = false;
             });
 
-            services.AddEventStore(eventStoreBuilder =>
-            {
-                eventStoreBuilder.UseSqlEventStorage();
+            services.AddEventStore();
 
-                eventStoreBuilder.UseSqlEventProcessing(new EventProcessingOptions
-                {
-                    EventProjectionConnectionStringName = EventProjectionConnectionStringName,
-                    EventStoreConnectionStringName = EventStoreConnectionStringName
-                });
+            services.AddSqlEventStorage();
+            services.AddSqlEventProcessing(builder =>
+            {
+                builder.Options.EventProjectionConnectionStringName = EventProjectionConnectionStringName;
+                builder.Options.EventStoreConnectionStringName = EventStoreConnectionStringName;
             });
 
             var serviceProvider = services.BuildServiceProvider();

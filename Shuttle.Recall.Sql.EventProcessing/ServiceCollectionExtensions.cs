@@ -10,10 +10,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddSqlEventProcessing(this IServiceCollection services, EventProcessingOptions eventProcessingOptions)
+        public static IServiceCollection AddSqlEventProcessing(this IServiceCollection services, Action<EventProcessingBuilder> builder = null)
         {
             Guard.AgainstNull(services, nameof(services));
-            Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions));
+
+            var eventProcessingBuilder = new EventProcessingBuilder(services);
+
+            builder?.Invoke(eventProcessingBuilder);
 
             services.TryAddSingleton<IScriptProvider, ScriptProvider>();
             services.TryAddSingleton<IValidateOptions<EventProcessingOptions>, EventProcessingValidator>();
@@ -28,9 +31,9 @@ namespace Shuttle.Recall.Sql.EventProcessing
             services.AddOptions<EventProcessingOptions>().Configure(options =>
             {
                 options.EventProjectionConnectionStringName =
-                    eventProcessingOptions.EventProjectionConnectionStringName;
+                    eventProcessingBuilder.Options.EventProjectionConnectionStringName;
                 options.EventStoreConnectionStringName =
-                    eventProcessingOptions.EventStoreConnectionStringName;
+                    eventProcessingBuilder.Options.EventStoreConnectionStringName;
             });
 
             return services;
