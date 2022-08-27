@@ -12,13 +12,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
             if (string.IsNullOrWhiteSpace(options.EventStoreConnectionStringName))
             {
-                return ValidateOptionsResult.Fail(string.Format(Resources.ConnectionStringEmptyException,
+                return ValidateOptionsResult.Fail(string.Format(Resources.ConnectionStringNameException,
                     "EventStoreConnectionStringName"));
             }
 
             if (string.IsNullOrWhiteSpace(options.EventProjectionConnectionStringName))
             {
-                return ValidateOptionsResult.Fail(string.Format(Resources.ConnectionStringEmptyException,
+                return ValidateOptionsResult.Fail(string.Format(Resources.ConnectionStringNameException,
                     "EventProjectionConnectionStringName"));
             }
 

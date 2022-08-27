@@ -63,9 +63,9 @@ namespace Shuttle.Recall.Sql.EventProcessing {
         /// <summary>
         ///   Looks up a localized string similar to No &apos;{0}&apos; option has been specified..
         /// </summary>
-        internal static string ConnectionStringEmptyException {
+        internal static string ConnectionStringNameException {
             get {
-                return ResourceManager.GetString("ConnectionStringEmptyException", resourceCulture);
+                return ResourceManager.GetString("ConnectionStringNameException", resourceCulture);
             }
         }
     }
