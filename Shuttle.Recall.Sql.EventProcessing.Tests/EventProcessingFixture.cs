@@ -1,7 +1,7 @@
-﻿using Ninject;
+﻿using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Shuttle.Core.Data;
-using Shuttle.Core.Ninject;
+using Shuttle.Core.Transactions;
 using Shuttle.Recall.Sql.Storage;
 using Shuttle.Recall.Tests;
 
@@ -12,27 +12,42 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
         [Test]
         public void ExerciseEventProcessing()
         {
-            var container = new NinjectComponentContainer(new StandardKernel());
+            var services = new ServiceCollection();
 
-            Bootstrap(container);
+            services.AddDataAccess(builder =>
+            {
+                builder.AddConnectionString(EventStoreConnectionStringName, "System.Data.SqlClient",
+                    "server=.;Initial Catalog=Shuttle;user id=sa;password=Pass!000");
+                builder.AddConnectionString(EventProjectionConnectionStringName, "System.Data.SqlClient",
+                    "server=.;Initial Catalog=ShuttleProjection;user id=sa;password=Pass!000");
+            });
 
-            container.RegisterDataAccess();
-            container.RegisterEventStore();
-            container.RegisterEventStoreStorage();
-            container.RegisterEventProcessing();
+            services.AddTransactionScope(builder =>
+            {
+                builder.Options.Enabled = false;
+            });
 
-            container.Resolve<EventProcessingModule>();
+            services.AddEventStore();
 
-            var eventStore = container.Resolve<IEventStore>();
+            services.AddSqlEventStorage();
+            services.AddSqlEventProcessing(builder =>
+            {
+                builder.Options.EventProjectionConnectionStringName = EventProjectionConnectionStringName;
+                builder.Options.EventStoreConnectionStringName = EventStoreConnectionStringName;
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var eventStore = serviceProvider.GetRequiredService<IEventStore>();
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
             {
                 RecallFixture.ExerciseStorage(eventStore);
             }
 
-            using (DatabaseContextFactory.Create(EventStoreProjectionConnectionStringName))
+            using (DatabaseContextFactory.Create(EventProjectionConnectionStringName))
             {
-                RecallFixture.ExerciseEventProcessing(container.Resolve<IEventProcessor>(), 300);
+                RecallFixture.ExerciseEventProcessing(serviceProvider.GetRequiredService<IEventProcessor>(), 300);
             }
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))

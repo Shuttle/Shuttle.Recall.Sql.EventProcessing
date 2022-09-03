@@ -7,7 +7,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
     public class EventProcessingModule
     {
         private readonly EventProcessingObserver _eventProcessingObserver;
-        private readonly string _pipelineName = typeof(EventProcessingPipeline).FullName;
+        private readonly Type _eventProcessingPipelineType = typeof(EventProcessingPipeline);
+        private readonly Type _eventProcessorStartupPipelineType = typeof(EventProcessorStartupPipeline);
 
         public EventProcessingModule(IPipelineFactory pipelineFactory, EventProcessingObserver eventProcessingObserver)
         {
@@ -21,8 +22,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         private void PipelineCreated(object sender, PipelineEventArgs e)
         {
-            if (!(e.Pipeline.GetType().FullName ?? string.Empty).Equals(_pipelineName,
-                StringComparison.InvariantCultureIgnoreCase))
+            if (e.Pipeline.GetType() != _eventProcessingPipelineType &&
+                e.Pipeline.GetType() != _eventProcessorStartupPipelineType)
             {
                 return;
             }

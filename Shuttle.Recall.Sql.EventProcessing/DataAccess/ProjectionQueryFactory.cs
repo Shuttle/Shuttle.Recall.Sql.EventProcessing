@@ -33,5 +33,11 @@ namespace Shuttle.Recall.Sql.EventProcessing
 	            .AddParameterValue(Columns.Name, projection.Name)
 	            .AddParameterValue(Columns.SequenceNumber, projection.SequenceNumber);
 	    }
-    }
+
+	    public IQuery GetSequenceNumber(string name)
+	    {
+		    return RawQuery.Create(_scriptProvider.Get("Projection.GetSequenceNumber"))
+			    .AddParameterValue(Columns.Name, name);
+	    }
+	}
 }
