@@ -35,9 +35,16 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             DatabaseContextFactory = new DatabaseContextFactory(
                 ConnectionStringOptions,
+                Options.Create(new DataAccessOptions
+                {
+                    DatabaseContextFactory = new DatabaseContextFactoryOptions
+                    {
+                        DefaultConnectionStringName = "Shuttle"
+                    }
+                }),
                 new DbConnectionFactory(),
                 new DbCommandFactory(Options.Create(new DataAccessOptions())),
-                DatabaseContextCache);
+                new ThreadStaticDatabaseContextCache());
 
             ClearDataStore();
         }
