@@ -19,8 +19,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
             services.TryAddSingleton<IScriptProvider, ScriptProvider>();
             services.TryAddSingleton<IValidateOptions<EventProcessingOptions>, EventProcessingValidator>();
-            services.TryAddSingleton<IProjectionRepository, ProjectionRepository>();
-            services.TryAddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
+            services.AddSingleton<IProjectionRepository, ProjectionRepository>();
+            services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
 
             services.TryAddSingleton<EventProcessingObserver, EventProcessingObserver>();
             services.TryAddSingleton<EventProcessingModule, EventProcessingModule>();

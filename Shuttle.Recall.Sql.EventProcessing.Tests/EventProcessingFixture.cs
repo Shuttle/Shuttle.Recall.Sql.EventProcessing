@@ -38,6 +38,8 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests
 
             var serviceProvider = services.BuildServiceProvider();
 
+            var primitiveEventRepository = serviceProvider.GetService<IPrimitiveEventRepository>();
+
             var eventStore = serviceProvider.GetRequiredService<IEventStore>();
 
             using (DatabaseContextFactory.Create(EventStoreConnectionStringName))
