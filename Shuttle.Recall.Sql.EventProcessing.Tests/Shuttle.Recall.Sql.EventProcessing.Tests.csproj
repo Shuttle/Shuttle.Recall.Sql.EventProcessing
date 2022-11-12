@@ -12,7 +12,7 @@
         <PackageReference Include="Shuttle.Core.Data" Version="13.0.0" />
         <PackageReference Include="Shuttle.Recall.Tests" Version="16.1.0" />
         <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
-        <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     </ItemGroup>
 
     <ItemGroup>
