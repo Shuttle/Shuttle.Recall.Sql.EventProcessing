@@ -27,15 +27,11 @@ namespace Shuttle.Recall.Sql.EventProcessing
         public EventProcessingObserver(IOptions<EventProcessingOptions> projectionOptions, IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IDatabaseContextFactory databaseContextFactory)
         {
             Guard.AgainstNull(projectionOptions, nameof(projectionOptions));
-            Guard.AgainstNull(projectionOptions.Value, nameof(projectionOptions.Value));
-            Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions));
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            
+            _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            _eventProcessingOptions = Guard.AgainstNull(projectionOptions.Value, nameof(projectionOptions.Value));
 
-            _eventProcessingOptions = projectionOptions.Value;
-            _databaseContextFactory = databaseContextFactory;
-
-            var eventStoreConnectionStringOptions =
-                connectionStringOptions.Get(_eventProcessingOptions.EventStoreConnectionStringName);
+            var eventStoreConnectionStringOptions = Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions)).Get(_eventProcessingOptions.EventStoreConnectionStringName);
 
             if (eventStoreConnectionStringOptions == null)
             {

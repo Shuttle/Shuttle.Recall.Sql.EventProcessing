@@ -10,11 +10,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public ProjectionRepository(IDatabaseGateway databaseGateway, IProjectionQueryFactory queryFactory)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-
-            _databaseGateway = databaseGateway;
-            _queryFactory = queryFactory;
+            _databaseGateway = Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
+            _queryFactory = Guard.AgainstNull(queryFactory, nameof(queryFactory));
         }
 
         public Projection Find(string name)

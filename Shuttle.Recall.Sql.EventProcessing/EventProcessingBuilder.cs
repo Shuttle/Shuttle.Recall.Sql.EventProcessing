@@ -12,9 +12,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public EventProcessingBuilder(IServiceCollection services)
         {
-            Guard.AgainstNull(services, nameof(services));
-
-            Services = services;
+            Services = Guard.AgainstNull(services, nameof(services));
         }
 
         public EventProcessingOptions Options

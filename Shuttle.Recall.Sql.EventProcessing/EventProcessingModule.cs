@@ -12,12 +12,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public EventProcessingModule(IPipelineFactory pipelineFactory, EventProcessingObserver eventProcessingObserver)
         {
-            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            Guard.AgainstNull(eventProcessingObserver, nameof(EventProcessingObserver));
-
-            _eventProcessingObserver = eventProcessingObserver;
-
-            pipelineFactory.PipelineCreated += PipelineCreated;
+            Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory)).PipelineCreated += PipelineCreated;
+            _eventProcessingObserver = Guard.AgainstNull(eventProcessingObserver, nameof(EventProcessingObserver));
         }
 
         private void PipelineCreated(object sender, PipelineEventArgs e)

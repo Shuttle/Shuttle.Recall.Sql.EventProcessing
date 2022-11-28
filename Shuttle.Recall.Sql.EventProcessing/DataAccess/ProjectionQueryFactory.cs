@@ -9,9 +9,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
 	    public ProjectionQueryFactory(IScriptProvider scriptProvider)
 	    {
-            Guard.AgainstNull(scriptProvider, nameof(scriptProvider));
-
-	        _scriptProvider = scriptProvider;
+		    _scriptProvider = Guard.AgainstNull(scriptProvider, nameof(scriptProvider));
 	    }
 
 		public IQuery SetSequenceNumber(string name, long sequenceNumber)
