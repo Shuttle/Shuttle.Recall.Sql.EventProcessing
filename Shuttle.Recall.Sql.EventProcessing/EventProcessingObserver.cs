@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
@@ -6,6 +7,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
 using Shuttle.Core.PipelineTransaction;
 using Shuttle.Core.Reflection;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -17,132 +19,146 @@ namespace Shuttle.Recall.Sql.EventProcessing
         IPipelineObserver<OnDisposeTransactionScope>,
         IPipelineObserver<OnAbortPipeline>
     {
+        private readonly IDatabaseContextService _databaseContextService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly EventProcessingOptions _eventProcessingOptions;
-        private readonly string _eventStoreProviderName;
-        private readonly string _eventStoreConnectionString;
-        private readonly string _eventProjectionProviderName;
-        private readonly string _eventProjectionConnectionString;
+        private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
+        private readonly SqlStorageOptions _sqlStorageOptions;
+        private readonly bool _isSharedConnection;
 
-        public EventProcessingObserver(IOptions<EventProcessingOptions> projectionOptions, IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IDatabaseContextFactory databaseContextFactory)
+        public EventProcessingObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IDatabaseContextService databaseContextService)
         {
-            Guard.AgainstNull(projectionOptions, nameof(projectionOptions));
-            
             _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            _eventProcessingOptions = Guard.AgainstNull(projectionOptions.Value, nameof(projectionOptions.Value));
+            _sqlStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlStorageOptions, nameof(sqlStorageOptions)).Value, nameof(sqlStorageOptions.Value));
+            _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions)).Value, nameof(eventProcessingOptions.Value));
+            _databaseContextService = Guard.AgainstNull(databaseContextService, nameof(databaseContextService));
 
-            var eventStoreConnectionStringOptions = Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions)).Get(_eventProcessingOptions.EventStoreConnectionStringName);
-
-            if (eventStoreConnectionStringOptions == null)
-            {
-                throw new InvalidOperationException(string.Format(
-                    Core.Data.Resources.ConnectionStringMissingException,
-                    _eventProcessingOptions.EventStoreConnectionStringName));
-            }
-
-            _eventStoreProviderName = eventStoreConnectionStringOptions.ProviderName;
-            _eventStoreConnectionString = eventStoreConnectionStringOptions.ConnectionString;
-
-            var eventProjectionConnectionStringOptions =
-                connectionStringOptions.Get(_eventProcessingOptions.EventProjectionConnectionStringName);
-
-            if (eventProjectionConnectionStringOptions == null)
-            {
-                throw new InvalidOperationException(string.Format(
-                    Core.Data.Resources.ConnectionStringMissingException,
-                    _eventProcessingOptions.EventProjectionConnectionStringName));
-            }
-
-            _eventProjectionProviderName = eventProjectionConnectionStringOptions.ProviderName;
-            _eventProjectionConnectionString = eventProjectionConnectionStringOptions.ConnectionString;
+            _isSharedConnection = _sqlEventProcessingOptions.ConnectionStringName.Equals(_sqlStorageOptions.ConnectionStringName, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public void Execute(OnAbortPipeline pipelineEvent)
         {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnAbortPipeline pipelineEvent)
+        {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
             DisposeDatabaseContext(pipelineEvent);
+
+            await Task.CompletedTask;
         }
 
         public void Execute(OnAfterGetProjectionEvent pipelineEvent)
         {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnAfterGetProjectionEvent pipelineEvent)
+        {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (_eventProcessingOptions.IsSharedConnection())
+            if (_isSharedConnection)
             {
                 return;
             }
 
-            _databaseContextFactory.DatabaseContextCache.Use("EventProjectionDatabaseContext");
+            _databaseContextService.Activate(_sqlEventProcessingOptions.ConnectionStringName);
+
+            await Task.CompletedTask;
         }
 
         public void Execute(OnAfterStartTransactionScope pipelineEvent)
         {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnAfterStartTransactionScope pipelineEvent)
+        {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (_eventProcessingOptions.IsSharedConnection())
+            if (_isSharedConnection)
             {
-                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_eventStoreProviderName, _eventStoreConnectionString));
+                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
             }
             else
             {
-                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext",
-                    _databaseContextFactory.Create(_eventProjectionProviderName, _eventProjectionConnectionString)
-                        .WithName("EventProjectionDatabaseContext"));
+                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
 
                 using (new TransactionScope(TransactionScopeOption.Suppress))
                 {
-                    pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext",
-                        _databaseContextFactory.Create(_eventStoreProviderName, _eventStoreConnectionString)
-                            .WithName("EventStoreDatabaseContext"));
+                    pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
                 }
             }
+
+            await Task.CompletedTask;
         }
 
         public void Execute(OnDisposeTransactionScope pipelineEvent)
         {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnDisposeTransactionScope pipelineEvent)
+        {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
             DisposeDatabaseContext(pipelineEvent);
+            
+            await Task.CompletedTask;
         }
 
         private void DisposeDatabaseContext(PipelineEvent pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (_eventProcessingOptions.IsSharedConnection())
+            if (_isSharedConnection)
             {
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>().AttemptDispose();
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>().TryDispose();
             }
             else
             {
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").AttemptDispose();
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").AttemptDispose();
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").TryDispose();
+                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").TryDispose();
             }
         }
 
         public void Execute(OnAfterStartEventProcessingEvent pipelineEvent)
         {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
 
-            if (_eventProcessingOptions.IsSharedConnection())
-            {
-                return;
-            }
-
-            _databaseContextFactory.DatabaseContextCache.Use("EventStoreDatabaseContext");
-       }
-
-        public void Execute(OnBeforeStartEventProcessingEvent pipelineEvent)
+        public async Task ExecuteAsync(OnAfterStartEventProcessingEvent pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (_eventProcessingOptions.IsSharedConnection())
+            if (_isSharedConnection)
             {
                 return;
             }
 
-            _databaseContextFactory.DatabaseContextCache.Use("EventProjectionDatabaseContext");
+            _databaseContextService.Activate(_sqlStorageOptions.ConnectionStringName);
+
+            await Task.CompletedTask;
+        }
+
+        public void Execute(OnBeforeStartEventProcessingEvent pipelineEvent)
+        {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnBeforeStartEventProcessingEvent pipelineEvent)
+        {
+            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
+            if (_isSharedConnection)
+            {
+                return;
+            }
+
+            _databaseContextService.Activate(_sqlEventProcessingOptions.ConnectionStringName);
+
+            await Task.CompletedTask;
         }
     }
 }
