@@ -13,7 +13,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests;
 [SetUpFixture]
 public class SqlConfiguration
 {
-    public static IServiceCollection GetServiceCollection()
+    public static IServiceCollection GetServiceCollection(bool sync)
     {
         var services = new ServiceCollection();
 
@@ -41,6 +41,8 @@ public class SqlConfiguration
             .AddEventStore(builder =>
             {
                 builder.Options.ProjectionThreadCount = 1;
+                builder.Options.ManageEventStoreConnections = true;
+                builder.Options.Asynchronous = !sync;
             });
 ;
 
