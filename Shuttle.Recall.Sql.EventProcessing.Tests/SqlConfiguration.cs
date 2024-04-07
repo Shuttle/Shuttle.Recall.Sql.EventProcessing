@@ -33,6 +33,7 @@ public class SqlConfiguration
             .AddSqlEventStorage(builder =>
             {
                 builder.Options.ConnectionStringName = "Shuttle";
+                builder.Options.ManageEventStoreConnections = true;
             })
             .AddSqlEventProcessing(builder =>
             {
@@ -41,7 +42,6 @@ public class SqlConfiguration
             .AddEventStore(builder =>
             {
                 builder.Options.ProjectionThreadCount = 1;
-                builder.Options.ManageEventStoreConnections = true;
                 builder.Options.Asynchronous = !sync;
             });
 ;
