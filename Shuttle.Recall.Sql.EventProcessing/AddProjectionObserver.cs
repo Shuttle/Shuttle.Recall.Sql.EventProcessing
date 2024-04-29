@@ -12,15 +12,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
         IPipelineObserver<OnBeforeAddProjection>,
         IPipelineObserver<OnAfterAddProjection>
     {
-        private readonly IDatabaseContextService _databaseContextService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
 
-        public AddProjectionObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IDatabaseContextService databaseContextService)
+        public AddProjectionObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory)
         {
             _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions)).Value, nameof(eventProcessingOptions.Value));
-            _databaseContextService = Guard.AgainstNull(databaseContextService, nameof(databaseContextService));
         }
 
         public void Execute(OnBeforeAddProjection pipelineEvent)
