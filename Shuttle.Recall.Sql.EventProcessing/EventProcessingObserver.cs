@@ -13,8 +13,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class EventProcessingObserver :
         IPipelineObserver<OnAfterStartTransactionScope>,
-        IPipelineObserver<OnBeforeStartEventProcessingEvent>,
-        IPipelineObserver<OnAfterStartEventProcessingEvent>,
+        IPipelineObserver<OnBeforeStartEventProcessing>,
+        IPipelineObserver<OnAfterStartEventProcessing>,
         IPipelineObserver<OnAfterGetProjectionEvent>,
         IPipelineObserver<OnDisposeTransactionScope>,
         IPipelineObserver<OnAbortPipeline>
@@ -123,12 +123,12 @@ namespace Shuttle.Recall.Sql.EventProcessing
             }
         }
 
-        public void Execute(OnAfterStartEventProcessingEvent pipelineEvent)
+        public void Execute(OnAfterStartEventProcessing pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnAfterStartEventProcessingEvent pipelineEvent)
+        public async Task ExecuteAsync(OnAfterStartEventProcessing pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
@@ -142,12 +142,12 @@ namespace Shuttle.Recall.Sql.EventProcessing
             await Task.CompletedTask;
         }
 
-        public void Execute(OnBeforeStartEventProcessingEvent pipelineEvent)
+        public void Execute(OnBeforeStartEventProcessing pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnBeforeStartEventProcessingEvent pipelineEvent)
+        public async Task ExecuteAsync(OnBeforeStartEventProcessing pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
