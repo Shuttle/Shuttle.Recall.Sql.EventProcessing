@@ -4,21 +4,21 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
-    public class EventProcessingBuilder
+    public class SqlEventProcessingBuilder
     {
-        private EventProcessingOptions _eventProcessingOptions = new EventProcessingOptions();
+        private SqlEventProcessingOptions _sqlEventProcessingOptions = new SqlEventProcessingOptions();
 
         public IServiceCollection Services { get; }
 
-        public EventProcessingBuilder(IServiceCollection services)
+        public SqlEventProcessingBuilder(IServiceCollection services)
         {
             Services = Guard.AgainstNull(services, nameof(services));
         }
 
-        public EventProcessingOptions Options
+        public SqlEventProcessingOptions Options
         {
-            get => _eventProcessingOptions;
-            set => _eventProcessingOptions = value ?? throw new ArgumentNullException(nameof(value));
+            get => _sqlEventProcessingOptions;
+            set => _sqlEventProcessingOptions = value ?? throw new ArgumentNullException(nameof(value));
         }
     }
 }

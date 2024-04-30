@@ -61,11 +61,11 @@ namespace Shuttle.Recall.Sql.EventProcessing {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No &apos;{0}&apos; option has been specified..
+        ///   Looks up a localized string similar to No &apos;SqlEventProcessingOptions.ConnectionStringName&apos; has been specified..
         /// </summary>
-        internal static string ConnectionStringNameException {
+        internal static string ConnectionStringException {
             get {
-                return ResourceManager.GetString("ConnectionStringNameException", resourceCulture);
+                return ResourceManager.GetString("ConnectionStringException", resourceCulture);
             }
         }
     }

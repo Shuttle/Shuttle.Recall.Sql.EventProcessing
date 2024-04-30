@@ -9,31 +9,28 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddSqlEventProcessing(this IServiceCollection services, Action<EventProcessingBuilder> builder = null)
+        public static IServiceCollection AddSqlEventProcessing(this IServiceCollection services, Action<SqlEventProcessingBuilder> builder = null)
         {
             Guard.AgainstNull(services, nameof(services));
 
-            var eventProcessingBuilder = new EventProcessingBuilder(services);
+            var eventProcessingBuilder = new SqlEventProcessingBuilder(services);
 
             builder?.Invoke(eventProcessingBuilder);
 
             services.TryAddSingleton<IScriptProvider, ScriptProvider>();
-            services.TryAddSingleton<IValidateOptions<EventProcessingOptions>, EventProcessingValidator>();
+            services.TryAddSingleton<IValidateOptions<SqlEventProcessingOptions>, SqlEventProcessingOptionsValidator>();
             services.AddSingleton<IProjectionRepository, ProjectionRepository>();
             services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
 
             services.TryAddSingleton<EventProcessingObserver, EventProcessingObserver>();
-            services.TryAddSingleton<EventProcessingModule, EventProcessingModule>();
+            services.TryAddSingleton<AddProjectionObserver, AddProjectionObserver>();
 
-            services.AddPipelineModule<EventProcessingModule>();
-
-            services.AddOptions<EventProcessingOptions>().Configure(options =>
+            services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
             {
-                options.EventProjectionConnectionStringName =
-                    eventProcessingBuilder.Options.EventProjectionConnectionStringName;
-                options.EventStoreConnectionStringName =
-                    eventProcessingBuilder.Options.EventStoreConnectionStringName;
+                options.ConnectionStringName = eventProcessingBuilder.Options.ConnectionStringName;
             });
+
+            services.AddHostedService<EventProcessingHostedService>();
 
             return services;
         }

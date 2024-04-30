@@ -117,8 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConnectionStringNameException" xml:space="preserve">
-    <value>No '{0}' option has been specified.</value>
-    <comment>0 = connection string name</comment>
+  <data name="ConnectionStringException" xml:space="preserve">
+    <value>No 'SqlEventProcessingOptions.ConnectionStringName' has been specified.</value>
   </data>
 </root>
