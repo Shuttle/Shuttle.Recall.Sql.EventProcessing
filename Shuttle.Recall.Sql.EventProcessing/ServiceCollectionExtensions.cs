@@ -28,6 +28,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
             services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
             {
                 options.ConnectionStringName = eventProcessingBuilder.Options.ConnectionStringName;
+                options.ManageEventStoreConnections = eventProcessingBuilder.Options.ManageEventStoreConnections;
             });
 
             services.AddHostedService<EventProcessingHostedService>();

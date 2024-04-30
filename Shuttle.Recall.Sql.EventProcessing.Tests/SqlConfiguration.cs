@@ -38,6 +38,7 @@ public class SqlConfiguration
             .AddSqlEventProcessing(builder =>
             {
                 builder.Options.ConnectionStringName = "ShuttleProjection";
+                builder.Options.ManageEventStoreConnections = true;
             })
             .AddEventStore(builder =>
             {
