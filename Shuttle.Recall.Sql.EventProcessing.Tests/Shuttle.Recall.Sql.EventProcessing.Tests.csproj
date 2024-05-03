@@ -12,7 +12,7 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
         <PackageReference Include="Shuttle.Core.Data" Version="15.0.1" />
         <PackageReference Include="Shuttle.Core.Data.Logging" Version="15.0.0" />
-        <PackageReference Include="Shuttle.Recall.Tests" Version="17.0.0" />
+        <PackageReference Include="Shuttle.Recall.Tests" Version="17.0.1" />
     </ItemGroup>
 
     <ItemGroup>
