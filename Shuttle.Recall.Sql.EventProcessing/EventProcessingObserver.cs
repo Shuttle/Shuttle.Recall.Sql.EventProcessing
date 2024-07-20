@@ -5,19 +5,17 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.PipelineTransaction;
 using Shuttle.Core.Reflection;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class EventProcessingObserver :
-        IPipelineObserver<OnAfterStartTransactionScope>,
-        IPipelineObserver<OnBeforeStartEventProcessing>,
-        IPipelineObserver<OnAfterStartEventProcessing>,
-        IPipelineObserver<OnAfterGetProjectionEvent>,
-        IPipelineObserver<OnDisposeTransactionScope>,
-        IPipelineObserver<OnAbortPipeline>
+        IPipelineObserver<OnStageStarting>,
+        IPipelineObserver<OnStageCompleted>,
+        IPipelineObserver<OnPipelineException>,
+        IPipelineObserver<OnAbortPipeline>,
+        IPipelineObserver<OnAfterGetProjectionEvent>
     {
         private readonly IDatabaseContextService _databaseContextService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -42,9 +40,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public async Task ExecuteAsync(OnAbortPipeline pipelineEvent)
         {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            DisposeDatabaseContext(pipelineEvent);
+            DisposeDatabaseContext(Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)));
 
             await Task.CompletedTask;
         }
@@ -68,42 +64,45 @@ namespace Shuttle.Recall.Sql.EventProcessing
             await Task.CompletedTask;
         }
 
-        public void Execute(OnAfterStartTransactionScope pipelineEvent)
+        public void Execute(OnStageStarting pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnAfterStartTransactionScope pipelineEvent)
+        public async Task ExecuteAsync(OnStageStarting pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
+            if (!pipelineEvent.Pipeline.StageName.Equals("Process", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return;
+            }
+
             if (_isSharedConnection)
             {
-                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                pipelineEvent.Pipeline.State.Replace(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
             }
             else
             {
-                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
+                pipelineEvent.Pipeline.State.Replace("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
 
                 using (new TransactionScope(TransactionScopeOption.Suppress))
                 {
-                    pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                    pipelineEvent.Pipeline.State.Replace("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
                 }
             }
 
             await Task.CompletedTask;
         }
 
-        public void Execute(OnDisposeTransactionScope pipelineEvent)
+        public void Execute(OnStageCompleted pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnDisposeTransactionScope pipelineEvent)
+        public async Task ExecuteAsync(OnStageCompleted pipelineEvent)
         {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            DisposeDatabaseContext(pipelineEvent);
+            DisposeDatabaseContext(Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)));
             
             await Task.CompletedTask;
         }
@@ -111,6 +110,11 @@ namespace Shuttle.Recall.Sql.EventProcessing
         private void DisposeDatabaseContext(PipelineEvent pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
+
+            if (!pipelineEvent.Pipeline.StageName.Equals("Process", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return;
+            }
 
             if (_isSharedConnection)
             {
@@ -123,40 +127,14 @@ namespace Shuttle.Recall.Sql.EventProcessing
             }
         }
 
-        public void Execute(OnAfterStartEventProcessing pipelineEvent)
+        public void Execute(OnPipelineException pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnAfterStartEventProcessing pipelineEvent)
+        public async Task ExecuteAsync(OnPipelineException pipelineEvent)
         {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            if (_isSharedConnection)
-            {
-                return;
-            }
-
-            _databaseContextService.Activate(_sqlStorageOptions.ConnectionStringName);
-
-            await Task.CompletedTask;
-        }
-
-        public void Execute(OnBeforeStartEventProcessing pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnBeforeStartEventProcessing pipelineEvent)
-        {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            if (_isSharedConnection)
-            {
-                return;
-            }
-
-            _databaseContextService.Activate(_sqlEventProcessingOptions.ConnectionStringName);
+            DisposeDatabaseContext(Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent)));
 
             await Task.CompletedTask;
         }

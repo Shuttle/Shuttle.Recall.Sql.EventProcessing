@@ -28,7 +28,7 @@ public class EventProcessingFixture : RecallFixture
         var databaseGateway = serviceProvider.GetRequiredService<IDatabaseGateway>();
         var databaseContextFactory = serviceProvider.GetRequiredService<IDatabaseContextFactory>();
 
-        using (databaseContextFactory.Create())
+        await using (databaseContextFactory.Create())
         {
             await databaseGateway.ExecuteAsync(new Query("delete from EventStore where Id = @Id").AddParameter(Columns.Id, OrderId));
             await databaseGateway.ExecuteAsync(new Query("delete from EventStore where Id = @Id").AddParameter(Columns.Id, OrderProcessId));

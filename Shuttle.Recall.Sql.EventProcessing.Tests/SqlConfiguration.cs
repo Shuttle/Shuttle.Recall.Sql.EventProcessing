@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Logging;
+using Shuttle.Recall.Logging;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing.Tests;
@@ -44,7 +45,8 @@ public class SqlConfiguration
             {
                 builder.Options.ProjectionThreadCount = 1;
                 builder.Options.Asynchronous = !sync;
-            });
+            })
+            .AddRecallLogging();
 ;
 
         return services;

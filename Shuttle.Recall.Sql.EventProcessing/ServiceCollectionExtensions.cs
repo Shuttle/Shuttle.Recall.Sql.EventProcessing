@@ -1,9 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
@@ -17,13 +15,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
             builder?.Invoke(eventProcessingBuilder);
 
-            services.TryAddSingleton<IScriptProvider, ScriptProvider>();
-            services.TryAddSingleton<IValidateOptions<SqlEventProcessingOptions>, SqlEventProcessingOptionsValidator>();
+            services.AddSingleton<IScriptProvider, ScriptProvider>();
+            services.AddSingleton<IValidateOptions<SqlEventProcessingOptions>, SqlEventProcessingOptionsValidator>();
             services.AddSingleton<IProjectionRepository, ProjectionRepository>();
             services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
 
-            services.TryAddSingleton<EventProcessingObserver, EventProcessingObserver>();
-            services.TryAddSingleton<AddProjectionObserver, AddProjectionObserver>();
+            services.AddSingleton<EventProcessingObserver, EventProcessingObserver>();
+            services.AddSingleton<AddProjectionObserver, AddProjectionObserver>();
 
             services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
             {
