@@ -34,12 +34,10 @@ public class SqlConfiguration
             .AddSqlEventStorage(builder =>
             {
                 builder.Options.ConnectionStringName = "Shuttle";
-                builder.Options.ManageEventStoreConnections = true;
             })
             .AddSqlEventProcessing(builder =>
             {
                 builder.Options.ConnectionStringName = "ShuttleProjection";
-                builder.Options.ManageEventStoreConnections = true;
             })
             .AddEventStore(builder =>
             {

@@ -23,6 +23,14 @@ namespace Shuttle.Recall.Sql.EventProcessing
         private readonly SqlStorageOptions _sqlStorageOptions;
         private readonly bool _isSharedConnection;
 
+        private class NullDisposable : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+
+
         public EventProcessingObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IDatabaseContextService databaseContextService)
         {
             _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
@@ -80,15 +88,15 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
             if (_isSharedConnection)
             {
-                pipelineEvent.Pipeline.State.Replace(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
             }
             else
             {
-                pipelineEvent.Pipeline.State.Replace("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
+                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
 
                 using (new TransactionScope(TransactionScopeOption.Suppress))
                 {
-                    pipelineEvent.Pipeline.State.Replace("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                    pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
                 }
             }
 
@@ -119,11 +127,16 @@ namespace Shuttle.Recall.Sql.EventProcessing
             if (_isSharedConnection)
             {
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>().TryDispose();
+
+                pipelineEvent.Pipeline.State.Remove<IDatabaseContext>();
             }
             else
             {
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").TryDispose();
                 pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").TryDispose();
+
+                pipelineEvent.Pipeline.State.Remove("EventProjectionDatabaseContext");
+                pipelineEvent.Pipeline.State.Remove("EventStoreDatabaseContext");
             }
         }
 
