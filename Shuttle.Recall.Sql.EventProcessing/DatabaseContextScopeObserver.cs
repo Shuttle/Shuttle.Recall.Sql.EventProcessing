@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -19,18 +20,18 @@ namespace Shuttle.Recall.Sql.Storage
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            foreach (var processorThread in pipelineEvent.Pipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool").ProcessorThreads)
+            pipelineEvent.Pipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool").ProcessorThreadCreated += (sender, args) =>
             {
-                processorThread.ProcessorThreadStarting += (sender, args) =>
+                args.ProcessorThread.ProcessorThreadStarting += (processorThreadSender, processorThreadArgs) =>
                 {
-                    processorThread.SetState("DatabaseContextScope", new DatabaseContextScope());
+                    args.ProcessorThread.SetState("DatabaseContextScope", new DatabaseContextScope());
                 };
 
-                processorThread.ProcessorThreadStopping += (sender, args) =>
+                args.ProcessorThread.ProcessorThreadStopping += (processorThreadSender, processorThreadArgs) =>
                 {
-                    (processorThread.GetState("DatabaseContextScope") as IDisposable)?.Dispose();
+                    (args.ProcessorThread.GetState("DatabaseContextScope") as IDisposable)?.Dispose();
                 };
-            }
+            };
 
             await Task.CompletedTask;
         }
