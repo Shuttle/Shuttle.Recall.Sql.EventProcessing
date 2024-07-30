@@ -14,8 +14,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
         IPipelineObserver<OnStageStarting>,
         IPipelineObserver<OnStageCompleted>,
         IPipelineObserver<OnPipelineException>,
-        IPipelineObserver<OnAbortPipeline>,
-        IPipelineObserver<OnAfterGetProjectionEvent>
+        IPipelineObserver<OnAbortPipeline>
     {
         private readonly IDatabaseContextService _databaseContextService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -53,25 +52,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
             await Task.CompletedTask;
         }
 
-        public void Execute(OnAfterGetProjectionEvent pipelineEvent)
-        {
-            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
-        }
-
-        public async Task ExecuteAsync(OnAfterGetProjectionEvent pipelineEvent)
-        {
-            Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
-
-            if (_isSharedConnection)
-            {
-                return;
-            }
-
-            _databaseContextService.Activate(_sqlEventProcessingOptions.ConnectionStringName);
-
-            await Task.CompletedTask;
-        }
-
         public void Execute(OnStageStarting pipelineEvent)
         {
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
@@ -81,22 +61,17 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (!pipelineEvent.Pipeline.StageName.Equals("Process", StringComparison.InvariantCultureIgnoreCase))
+            switch (pipelineEvent.Pipeline.StageName.ToUpperInvariant())
             {
-                return;
-            }
-
-            if (_isSharedConnection)
-            {
-                pipelineEvent.Pipeline.State.Add(_databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
-            }
-            else
-            {
-                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
-
-                using (new TransactionScope(TransactionScopeOption.Suppress))
+                case "EVENTPROCESSING.READ":
                 {
-                    pipelineEvent.Pipeline.State.Add("EventStoreDatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                    pipelineEvent.Pipeline.State.Add("EventProcessingObserver.DatabaseContext", _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
+                    break;
+                }
+                case "EVENTPROCESSING.HANDLE":
+                {
+                    pipelineEvent.Pipeline.State.Add("EventProcessingObserver.DatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
+                    break;
                 }
             }
 
@@ -119,25 +94,8 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (!pipelineEvent.Pipeline.StageName.Equals("Process", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return;
-            }
-
-            if (_isSharedConnection)
-            {
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>().TryDispose();
-
-                pipelineEvent.Pipeline.State.Remove<IDatabaseContext>();
-            }
-            else
-            {
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").TryDispose();
-                pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventStoreDatabaseContext").TryDispose();
-
-                pipelineEvent.Pipeline.State.Remove("EventProjectionDatabaseContext");
-                pipelineEvent.Pipeline.State.Remove("EventStoreDatabaseContext");
-            }
+            pipelineEvent.Pipeline.State.Get("EventProcessingObserver.DatabaseContext")?.TryDispose();
+            pipelineEvent.Pipeline.State.Remove("EventProcessingObserver.DatabaseContext");
         }
 
         public void Execute(OnPipelineException pipelineEvent)

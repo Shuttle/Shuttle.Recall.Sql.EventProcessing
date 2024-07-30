@@ -15,6 +15,9 @@ namespace Shuttle.Recall.Sql.EventProcessing
         private readonly IDatabaseContextService _databaseContextService;
         private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
 
+        private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.AddProjectionObserver:DatabaseContext";
+        private const string CloseConnectionStateKey = "Shuttle.Recall.Sql.EventProcessing.AddProjectionObserver:CloseConnection";
+
         public AddProjectionObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
         {
             _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions)).Value, nameof(eventProcessingOptions.Value));
@@ -31,9 +34,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            await pipelineEvent.Pipeline.State.Get<IDatabaseContext>("EventProjectionDatabaseContext").TryDisposeAsync();
+            if (pipelineEvent.Pipeline.State.Get<bool>(CloseConnectionStateKey))
+            {
+                await pipelineEvent.Pipeline.State.Get<IDatabaseContext>(DatabaseContextStateKey).TryDisposeAsync();
+            }
 
-            pipelineEvent.Pipeline.State.Remove("EventProjectionDatabaseContext");
+            pipelineEvent.Pipeline.State.Remove(DatabaseContextStateKey);
+            pipelineEvent.Pipeline.State.Remove(CloseConnectionStateKey);
         }
 
         public void Execute(OnBeforeAddProjection pipelineEvent)
@@ -45,9 +52,13 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (!_databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName))
+            var hasExistingConnection = _databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName);
+
+            pipelineEvent.Pipeline.State.Add(CloseConnectionStateKey, !hasExistingConnection);
+
+            if (!hasExistingConnection)
             {
-                pipelineEvent.Pipeline.State.Add("EventProjectionDatabaseContext", _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
+                pipelineEvent.Pipeline.State.Add(DatabaseContextStateKey, _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
             }
 
             await Task.CompletedTask;

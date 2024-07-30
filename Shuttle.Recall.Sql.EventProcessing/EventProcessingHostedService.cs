@@ -51,13 +51,6 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             var pipelineType = e.Pipeline.GetType();
 
-            if (pipelineType == _eventProcessorStartupPipeline)
-            {
-                e.Pipeline.RegisterObserver(new DatabaseContextScopeObserver());
-
-                return;
-            }
-
             if (pipelineType == _eventProcessingPipelineType ||
                 pipelineType == _eventProcessorStartupPipelineType)
             {
