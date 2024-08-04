@@ -9,19 +9,18 @@ namespace Shuttle.Recall.Sql.EventProcessing
 {
     public class AddProjectionObserver :
         IPipelineObserver<OnBeforeAddProjection>,
-        IPipelineObserver<OnAfterAddProjection>
+        IPipelineObserver<OnAfterAddProjection>,
+        IPipelineObserver<OnPipelineException>,
+        IPipelineObserver<OnAbortPipeline>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IDatabaseContextService _databaseContextService;
         private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
 
         private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.AddProjectionObserver:DatabaseContext";
-        private const string CloseConnectionStateKey = "Shuttle.Recall.Sql.EventProcessing.AddProjectionObserver:CloseConnection";
 
-        public AddProjectionObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
+        public AddProjectionObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory)
         {
             _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions)).Value, nameof(eventProcessingOptions.Value));
-            _databaseContextService = Guard.AgainstNull(databaseContextService, nameof(databaseContextService));
             _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
         }
 
@@ -30,17 +29,23 @@ namespace Shuttle.Recall.Sql.EventProcessing
             ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
         }
 
-        public async Task ExecuteAsync(OnAfterAddProjection pipelineEvent)
+        private async Task DisposeDatabaseContextAsync(PipelineEvent pipelineEvent)
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            if (pipelineEvent.Pipeline.State.Get<bool>(CloseConnectionStateKey))
+            var databaseContext = pipelineEvent.Pipeline.State.Get(DatabaseContextStateKey);
+
+            if (databaseContext != null)
             {
-                await pipelineEvent.Pipeline.State.Get<IDatabaseContext>(DatabaseContextStateKey).TryDisposeAsync();
+                await databaseContext.TryDisposeAsync();
             }
 
             pipelineEvent.Pipeline.State.Remove(DatabaseContextStateKey);
-            pipelineEvent.Pipeline.State.Remove(CloseConnectionStateKey);
+        }
+
+        public async Task ExecuteAsync(OnAfterAddProjection pipelineEvent)
+        {
+            await DisposeDatabaseContextAsync(pipelineEvent);
         }
 
         public void Execute(OnBeforeAddProjection pipelineEvent)
@@ -52,16 +57,29 @@ namespace Shuttle.Recall.Sql.EventProcessing
         {
             Guard.AgainstNull(pipelineEvent, nameof(pipelineEvent));
 
-            var hasExistingConnection = _databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName);
-
-            pipelineEvent.Pipeline.State.Add(CloseConnectionStateKey, !hasExistingConnection);
-
-            if (!hasExistingConnection)
-            {
-                pipelineEvent.Pipeline.State.Add(DatabaseContextStateKey, _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
-            }
+            pipelineEvent.Pipeline.State.Add(DatabaseContextStateKey, _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
 
             await Task.CompletedTask;
+        }
+
+        public void Execute(OnPipelineException pipelineEvent)
+        {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnPipelineException pipelineEvent)
+        {
+            await DisposeDatabaseContextAsync(pipelineEvent);
+        }
+
+        public void Execute(OnAbortPipeline pipelineEvent)
+        {
+            ExecuteAsync(pipelineEvent).GetAwaiter().GetResult();
+        }
+
+        public async Task ExecuteAsync(OnAbortPipeline pipelineEvent)
+        {
+            await DisposeDatabaseContextAsync(pipelineEvent);
         }
     }
 }
