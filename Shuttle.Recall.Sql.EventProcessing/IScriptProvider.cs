@@ -1,6 +1,5 @@
-﻿namespace Shuttle.Recall.Sql.EventProcessing
+﻿namespace Shuttle.Recall.Sql.EventProcessing;
+
+public interface IScriptProvider : Core.Data.IScriptProvider
 {
-	public interface IScriptProvider : Core.Data.IScriptProvider
-	{
-	}
 }

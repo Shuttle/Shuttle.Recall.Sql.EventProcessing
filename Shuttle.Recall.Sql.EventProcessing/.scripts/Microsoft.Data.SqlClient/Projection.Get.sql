@@ -2,6 +2,6 @@
 	[Name],
 	SequenceNumber
 from 
-	[dbo].[Projection]
+	[{schema}].[Projection]
 where 
 	[Name] = @Name

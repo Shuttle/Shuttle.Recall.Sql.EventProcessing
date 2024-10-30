@@ -3,18 +3,18 @@
 	select
 		null
 	from
-		[dbo].[Projection]
+		[{schema}].[Projection]
 	where
 		[Name] = @Name
 )
 	update
-		[dbo].[Projection]
+		[{schema}].[Projection]
 	set
 		SequenceNumber = @SequenceNumber
 	where
 		[Name] = @Name
 else
-	insert into [dbo].[Projection]
+	insert into [{schema}].[Projection]
 	(
 		[Name],
 		SequenceNumber

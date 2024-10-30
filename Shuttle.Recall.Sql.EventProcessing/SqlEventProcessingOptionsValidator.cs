@@ -1,21 +1,19 @@
-﻿using System;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Recall.Sql.EventProcessing
+namespace Shuttle.Recall.Sql.EventProcessing;
+
+public class SqlEventProcessingOptionsValidator : IValidateOptions<SqlEventProcessingOptions>
 {
-    public class SqlEventProcessingOptionsValidator : IValidateOptions<SqlEventProcessingOptions>
+    public ValidateOptionsResult Validate(string? name, SqlEventProcessingOptions options)
     {
-        public ValidateOptionsResult Validate(string name, SqlEventProcessingOptions options)
+        Guard.AgainstNull(options);
+
+        if (string.IsNullOrWhiteSpace(options.ConnectionStringName))
         {
-            Guard.AgainstNull(options, nameof(options));
-
-            if (string.IsNullOrWhiteSpace(options.ConnectionStringName))
-            {
-                return ValidateOptionsResult.Fail(Resources.ConnectionStringException);
-            }
-
-            return ValidateOptionsResult.Success;
+            return ValidateOptionsResult.Fail(Resources.ConnectionStringException);
         }
+
+        return ValidateOptionsResult.Success;
     }
 }

@@ -1,30 +1,29 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Shuttle.Recall.Sql.EventProcessing.Tests
+namespace Shuttle.Recall.Sql.EventProcessing.Tests;
+
+public class Timer : IDisposable
 {
-	public class Timer : IDisposable
-	{
-		private Stopwatch _sw = new Stopwatch();
-		private readonly string _what;
+    private readonly string _what;
+    private readonly Stopwatch _sw = new();
 
-		private Timer(string what)
-		{
-			_what = what;
+    private Timer(string what)
+    {
+        _what = what;
 
-			_sw.Start();
-		}
+        _sw.Start();
+    }
 
-		public static Timer Time(string what)
-		{
-			return new Timer(what);
-		}
+    public void Dispose()
+    {
+        _sw.Stop();
 
-		public void Dispose()
-		{
-			_sw.Stop();
+        Console.WriteLine($@"[{_what}] : elapsed ms = {_sw.ElapsedMilliseconds}");
+    }
 
-			Console.WriteLine("[{0}] : elapsed ms = {1}", _what, _sw.ElapsedMilliseconds);
-		}
-	}
+    public static Timer Time(string what)
+    {
+        return new(what);
+    }
 }

@@ -1,1 +1,1 @@
-﻿select SequenceNumber from [dbo].[Projection] where [Name] = @Name
+﻿select SequenceNumber from [{schema}].[Projection] where [Name] = @Name

@@ -1,4 +1,3 @@
-using System;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +13,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests;
 [SetUpFixture]
 public class SqlConfiguration
 {
-    public static IServiceCollection GetServiceCollection(bool sync)
+    public static IServiceCollection GetServiceCollection()
     {
         var services = new ServiceCollection();
 
@@ -42,10 +41,8 @@ public class SqlConfiguration
             .AddEventStore(builder =>
             {
                 builder.Options.ProjectionThreadCount = 1;
-                builder.Options.Asynchronous = !sync;
             })
             .AddRecallLogging();
-;
 
         return services;
     }
