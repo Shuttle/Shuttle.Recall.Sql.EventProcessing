@@ -18,10 +18,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IProjectionRepository, ProjectionRepository>();
         services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
 
+        services.AddSingleton<EventProcessingObserver, EventProcessingObserver>();
+        services.AddSingleton<AddProjectionObserver, AddProjectionObserver>();
+
         services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
         {
             options.ConnectionStringName = eventProcessingBuilder.Options.ConnectionStringName;
         });
+
+        services.AddHostedService<EventProcessingHostedService>();
 
         return services;
     }

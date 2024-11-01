@@ -7,22 +7,18 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 
 public class ProjectionRepository : IProjectionRepository
 {
-    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly IDatabaseContextService _databaseContextService;
     private readonly IProjectionQueryFactory _queryFactory;
-    private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
 
-    public ProjectionRepository(IOptions<SqlEventProcessingOptions> sqlEventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionQueryFactory queryFactory)
+    public ProjectionRepository(IDatabaseContextService databaseContextService, IProjectionQueryFactory queryFactory)
     {
-        _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlEventProcessingOptions).Value);
-        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
         _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
     public async Task<Projection?> FindAsync(string name)
     {
-        await using var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName);
-
-        var row = await databaseContext.GetRowAsync(_queryFactory.Get(name));
+        var row = await _databaseContextService.Active.GetRowAsync(_queryFactory.Get(Guard.AgainstNullOrEmptyString(name)));
 
         if (row == null)
         {
@@ -34,23 +30,16 @@ public class ProjectionRepository : IProjectionRepository
 
     public async ValueTask<long> GetSequenceNumberAsync(string projectionName)
     {
-        await using var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName);
-        return await databaseContext.GetScalarAsync<long?>(_queryFactory.GetSequenceNumber(projectionName)).ConfigureAwait(false) ?? 0;
+        return await _databaseContextService.Active.GetScalarAsync<long?>(_queryFactory.GetSequenceNumber(projectionName)).ConfigureAwait(false) ?? 0;
     }
 
     public async Task SaveAsync(Projection projection)
     {
-        Guard.AgainstNull(projection);
-
-        await using var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName);
-        await databaseContext.ExecuteAsync(_queryFactory.Save(projection)).ConfigureAwait(false);
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Save(Guard.AgainstNull(projection))).ConfigureAwait(false);
     }
 
     public async Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
     {
-        Guard.AgainstNullOrEmptyString(projectionName);
-
-        await using var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName);
-        await databaseContext.ExecuteAsync(_queryFactory.SetSequenceNumber(projectionName, sequenceNumber)).ConfigureAwait(false);
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.SetSequenceNumber(Guard.AgainstNullOrEmptyString(projectionName), sequenceNumber)).ConfigureAwait(false);
     }
 }
