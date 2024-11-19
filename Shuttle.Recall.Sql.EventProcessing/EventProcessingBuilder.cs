@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
+using Shuttle.Recall.Sql.EventProcessing.SqlServer;
 
 namespace Shuttle.Recall.Sql.EventProcessing;
 
@@ -20,4 +20,11 @@ public class SqlEventProcessingBuilder
     }
 
     public IServiceCollection Services { get; }
+
+    public SqlEventProcessingBuilder UseSqlServer()
+    {
+        Services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
+
+        return this;
+    }
 }

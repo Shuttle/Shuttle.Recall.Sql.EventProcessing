@@ -13,10 +13,8 @@ public static class ServiceCollectionExtensions
 
         builder?.Invoke(eventProcessingBuilder);
 
-        services.AddSingleton<IScriptProvider, ScriptProvider>();
         services.AddSingleton<IValidateOptions<SqlEventProcessingOptions>, SqlEventProcessingOptionsValidator>();
         services.AddSingleton<IProjectionRepository, ProjectionRepository>();
-        services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
         services.AddSingleton<IProjectionEventProvider, ProjectionEventProvider>();
         services.AddSingleton<EventProcessingStartupObserver>();
 
