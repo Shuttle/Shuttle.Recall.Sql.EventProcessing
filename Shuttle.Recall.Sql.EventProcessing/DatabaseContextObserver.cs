@@ -8,7 +8,7 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing
 {
-    public class EventProcessingObserver :
+    public class DatabaseContextObserver :
         IPipelineObserver<OnStageStarting>,
         IPipelineObserver<OnStageCompleted>,
         IPipelineObserver<OnPipelineException>,
@@ -22,7 +22,7 @@ namespace Shuttle.Recall.Sql.EventProcessing
         private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.EventProcessingObserver:DatabaseContext";
         private const string DisposeDatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.EventProcessingObserver:DisposeDatabaseContext";
 
-        public EventProcessingObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
+        public DatabaseContextObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
         {
             _sqlStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlStorageOptions).Value);
             _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions.Value));
@@ -37,12 +37,12 @@ namespace Shuttle.Recall.Sql.EventProcessing
 
         public async Task ExecuteAsync(IPipelineContext<OnPipelineException> pipelineContext)
         {
-            await DisposeDatabaseContextAsync(Guard.AgainstNull(pipelineContext, nameof(pipelineContext)));
+            await DisposeDatabaseContextAsync(Guard.AgainstNull(pipelineContext));
         }
 
         public async Task ExecuteAsync(IPipelineContext<OnStageCompleted> pipelineContext)
         {
-            await DisposeDatabaseContextAsync(Guard.AgainstNull(pipelineContext, nameof(pipelineContext)));
+            await DisposeDatabaseContextAsync(Guard.AgainstNull(pipelineContext));
         }
 
         public async Task ExecuteAsync(IPipelineContext<OnStageStarting> pipelineContext)

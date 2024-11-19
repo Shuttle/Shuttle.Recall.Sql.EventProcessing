@@ -38,11 +38,7 @@ public class SqlConfiguration
             {
                 builder.Options.ConnectionStringName = "ShuttleProjection";
             })
-            .AddEventStore(builder =>
-            {
-                builder.Options.ProjectionThreadCount = 1;
-            })
-            .AddRecallLogging();
+            .AddEventStoreLogging();
 
         return services;
     }

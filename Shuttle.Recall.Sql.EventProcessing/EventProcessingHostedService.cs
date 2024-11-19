@@ -9,19 +9,16 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 
 public class EventProcessingHostedService : IHostedService
 {
-    private readonly AddProjectionObserver _addProjectionObserver;
 
-    private readonly Type _addProjectionPipelineType = typeof(AddProjectionPipeline);
-    private readonly EventProcessingObserver _eventProcessingObserver;
+    private readonly DatabaseContextObserver _databaseContextObserver;
     private readonly Type _eventProcessingPipelineType = typeof(EventProcessingPipeline);
     private readonly Type _eventProcessorStartupPipelineType = typeof(EventProcessorStartupPipeline);
     private readonly IPipelineFactory _pipelineFactory;
 
-    public EventProcessingHostedService(IPipelineFactory pipelineFactory, EventProcessingObserver eventProcessingObserver, AddProjectionObserver addProjectionObserver)
+    public EventProcessingHostedService(IPipelineFactory pipelineFactory, DatabaseContextObserver databaseContextObserver)
     {
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-        _eventProcessingObserver = Guard.AgainstNull(eventProcessingObserver, nameof(EventProcessingObserver));
-        _addProjectionObserver = Guard.AgainstNull(addProjectionObserver, nameof(addProjectionObserver));
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+        _databaseContextObserver = Guard.AgainstNull(databaseContextObserver);
 
         _pipelineFactory.PipelineCreated += OnPipelineCreated;
     }
@@ -45,12 +42,12 @@ public class EventProcessingHostedService : IHostedService
         if (pipelineType == _eventProcessingPipelineType ||
             pipelineType == _eventProcessorStartupPipelineType)
         {
-            e.Pipeline.RegisterObserver(_eventProcessingObserver);
+            e.Pipeline.AddObserver(_databaseContextObserver);
         }
 
-        if (pipelineType == _addProjectionPipelineType)
+        if (pipelineType == _eventProcessorStartupPipelineType)
         {
-            e.Pipeline.RegisterObserver(_addProjectionObserver);
+            e.Pipeline.AddObserver<EventProcessingStartupObserver>();
         }
     }
 }

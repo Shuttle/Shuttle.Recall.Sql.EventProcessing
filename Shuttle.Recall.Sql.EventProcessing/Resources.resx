@@ -120,4 +120,9 @@
   <data name="ConnectionStringException" xml:space="preserve">
     <value>No 'SqlEventProcessingOptions.ConnectionStringName' has been specified.</value>
   </data>
+  <data name="ProjectionEventProviderTypeException" xml:space="preserve">
+    <value>The projection event provider must be of type 'ProjectionEventProvider'; instead found type '{0}'.</value>
+    <comment>0 = projection event provider type name 
+registered</comment>
+  </data>
 </root>

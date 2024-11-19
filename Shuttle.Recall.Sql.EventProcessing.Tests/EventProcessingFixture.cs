@@ -22,8 +22,9 @@ public class EventProcessingFixture : RecallFixture
             await databaseContext.ExecuteAsync(new Query("delete from EventStore where Id = @Id").AddParameter(Columns.Id, OrderProcessId));
         }
 
-        await ExerciseStorageAsync(services);
-        await ExerciseEventProcessingAsync(services, handlerTimeoutSeconds: 300);
-        await ExerciseStorageRemovalAsync(services);
+        await ExerciseEventProcessingAsync(services, (EventStoreBuilder builder) =>
+        {
+            builder.Options.ProjectionThreadCount = 1;
+        }, handlerTimeoutSeconds: 300);
     }
 }

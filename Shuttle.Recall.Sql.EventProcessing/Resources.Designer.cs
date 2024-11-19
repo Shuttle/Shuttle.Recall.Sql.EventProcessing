@@ -68,5 +68,14 @@ namespace Shuttle.Recall.Sql.EventProcessing {
                 return ResourceManager.GetString("ConnectionStringException", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The projection event provider must be of type &apos;ProjectionEventProvider&apos;; instead found type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ProjectionEventProviderTypeException {
+            get {
+                return ResourceManager.GetString("ProjectionEventProviderTypeException", resourceCulture);
+            }
+        }
     }
 }

@@ -17,9 +17,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<SqlEventProcessingOptions>, SqlEventProcessingOptionsValidator>();
         services.AddSingleton<IProjectionRepository, ProjectionRepository>();
         services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
+        services.AddSingleton<IProjectionEventProvider, ProjectionEventProvider>();
+        services.AddSingleton<EventProcessingStartupObserver>();
 
-        services.AddSingleton<EventProcessingObserver, EventProcessingObserver>();
-        services.AddSingleton<AddProjectionObserver, AddProjectionObserver>();
+        services.AddSingleton<DatabaseContextObserver, DatabaseContextObserver>();
 
         services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
         {
