@@ -11,7 +11,12 @@ public class SqlEventProcessingOptionsValidator : IValidateOptions<SqlEventProce
 
         if (string.IsNullOrWhiteSpace(options.ConnectionStringName))
         {
-            return ValidateOptionsResult.Fail(Resources.ConnectionStringException);
+            return ValidateOptionsResult.Fail(Resources.ConnectionStringOptionException);
+        }
+
+        if (string.IsNullOrWhiteSpace(options.Schema))
+        {
+            return ValidateOptionsResult.Fail(Resources.SchemaOptionException);
         }
 
         return ValidateOptionsResult.Success;

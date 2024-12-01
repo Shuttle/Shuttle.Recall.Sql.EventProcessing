@@ -8,20 +8,20 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 
 public class EventProcessingStartupObserver : IPipelineObserver<OnAfterConfigureThreadPools>
 {
-    private readonly IProjectionEventProvider _projectionEventProvider;
+    private readonly IProjectionService _projectionService;
 
-    public EventProcessingStartupObserver(IProjectionEventProvider projectionEventProvider)
+    public EventProcessingStartupObserver(IProjectionService projectionService)
     {
-        _projectionEventProvider = Guard.AgainstNull(projectionEventProvider);
+        _projectionService = Guard.AgainstNull(projectionService);
     }
 
     public async Task ExecuteAsync(IPipelineContext<OnAfterConfigureThreadPools> pipelineContext)
     {
-        if (_projectionEventProvider is not ProjectionEventProvider provider)
+        if (_projectionService is not ProjectionService service)
         {
-            throw new InvalidOperationException(string.Format(Resources.ProjectionEventProviderTypeException, _projectionEventProvider.GetType().FullName));
+            throw new InvalidOperationException(string.Format(Resources.ProjectionServiceTypeException, typeof(ProjectionService).FullName, _projectionService.GetType().FullName));
         }
 
-        await provider.StartupAsync(Guard.AgainstNull(Guard.AgainstNull(pipelineContext).Pipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool")));
+        await service.StartupAsync(Guard.AgainstNull(Guard.AgainstNull(pipelineContext).Pipeline.State.Get<IProcessorThreadPool>("EventProcessorThreadPool")));
     }
 }

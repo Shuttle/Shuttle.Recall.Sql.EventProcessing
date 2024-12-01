@@ -11,28 +11,26 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing;
 
-public class ProjectionEventProvider : IProjectionEventProvider
+public class ProjectionService : IProjectionService
 {
+    private readonly IProjectionQuery _projectionQuery;
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly SqlEventProcessingOptions _eventProcessingOptions;
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly IPrimitiveEventQuery _primitiveEventQuery;
-    private readonly IProjectionRepository _projectionRepository;
     private readonly Queue<Projection> _projections = new();
-    private readonly SqlStorageOptions _storageOptions;
 
-    public ProjectionEventProvider(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
+    public ProjectionService(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
     {
-        _storageOptions = Guard.AgainstNull(Guard.AgainstNull(storageOptions).Value);
         _eventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions).Value);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
-        _projectionRepository = Guard.AgainstNull(projectionRepository);
+        _projectionQuery = Guard.AgainstNull(projectionQuery);
         _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
         _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
     }
 
-    public async Task<ProjectionEvent?> GetAsync()
+    public async Task<ProjectionEvent?> GetProjectionEventAsync()
     {
         Projection? projection = null;
 
@@ -85,6 +83,12 @@ public class ProjectionEventProvider : IProjectionEventProvider
         }
     }
 
+    public async Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
+    {
+        //await using var databaseContext = _databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName);
+        await _projectionQuery.SetSequenceNumberAsync(projectionName, sequenceNumber);
+    }
+
     private async Task GetJournal()
     {
         await Task.CompletedTask;
@@ -98,16 +102,7 @@ public class ProjectionEventProvider : IProjectionEventProvider
 
         foreach (var projectionConfiguration in _eventProcessorConfiguration.Projections)
         {
-            var projection = await _projectionRepository.FindAsync(projectionConfiguration.Name);
-
-            if (projection == null)
-            {
-                projection = new(projectionConfiguration.Name, 0);
-
-                await _projectionRepository.SaveAsync(projection);
-            }
-
-            _projections.Enqueue(projection);
+            _projections.Enqueue(new(projectionConfiguration.Name, await _projectionQuery.GetSequenceNumberAsync(projectionConfiguration.Name)));
         }
 
         //  assign thread id to each existing journal entry
