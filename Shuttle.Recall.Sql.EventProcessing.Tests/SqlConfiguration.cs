@@ -21,9 +21,8 @@ public class SqlConfiguration
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().Build())
             .AddDataAccess(builder =>
             {
-                builder.AddConnectionString("Shuttle", "Microsoft.Data.SqlClient", "server=.;database=Shuttle;user id=sa;password=Pass!000;TrustServerCertificate=true");
-                builder.AddConnectionString("ShuttleProjection", "Microsoft.Data.SqlClient", "server=.;database=ShuttleProjection;user id=sa;password=Pass!000;TrustServerCertificate=true");
-                builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Shuttle";
+                builder.AddConnectionString("StorageConnection", "Microsoft.Data.SqlClient", "Server=.;Database=RecallFixtureStorage;User Id=sa;Password=Pass!000;TrustServerCertificate=true");
+                builder.AddConnectionString("EventProcessingConnection", "Microsoft.Data.SqlClient", "Server=.;Database=RecallFixtureEventProcessing;User Id=sa;Password=Pass!000;TrustServerCertificate=true");
             })
             .AddDataAccessLogging(builder =>
             {
@@ -32,15 +31,15 @@ public class SqlConfiguration
             })
             .AddSqlEventStorage(builder =>
             {
-                builder.Options.ConnectionStringName = "Shuttle";
-                builder.Options.Schema = "StorageFixture";
+                builder.Options.ConnectionStringName = "StorageConnection";
+                builder.Options.Schema = "Recall";
 
                 builder.UseSqlServer();
             })
             .AddSqlEventProcessing(builder =>
             {
-                builder.Options.ConnectionStringName = "ShuttleProjection";
-                builder.Options.Schema = "EventProcessingFixture";
+                builder.Options.ConnectionStringName = "EventProcessingConnection";
+                builder.Options.Schema = "Recall";
 
                 builder.UseSqlServer();
             })

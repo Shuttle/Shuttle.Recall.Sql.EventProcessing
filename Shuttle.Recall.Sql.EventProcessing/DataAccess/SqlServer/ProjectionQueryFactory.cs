@@ -15,14 +15,14 @@ public class ProjectionQueryFactory : IProjectionQueryFactory
 
     public IQuery SetSequenceNumber(string name, long sequenceNumber)
     {
-        return new Query($"update [{_sqlEventProcessingOptions.Schema}].[Projection] set SequenceNumber = @SequenceNumber where [Name] = @Name")
+        return new Query($"UPDATE [{_sqlEventProcessingOptions.Schema}].[Projection] SET SequenceNumber = @SequenceNumber WHERE [Name] = @Name")
             .AddParameter(Columns.Name, name)
             .AddParameter(Columns.SequenceNumber, sequenceNumber);
     }
 
     public IQuery GetSequenceNumber(string name)
     {
-        return new Query($"select SequenceNumber from [{_sqlEventProcessingOptions.Schema}].[Projection] where [Name] = @Name")
+        return new Query($"SELECT SequenceNumber FROM [{_sqlEventProcessingOptions.Schema}].[Projection] WHERE [Name] = @Name")
             .AddParameter(Columns.Name, name);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ public class ProjectionService : IProjectionService
 
     public async Task<ProjectionEvent?> GetProjectionEventAsync()
     {
-        Projection? projection = null;
+        Projection? projection;
 
         await _lock.WaitAsync();
 
@@ -56,8 +55,8 @@ public class ProjectionService : IProjectionService
 
             var specification = new PrimitiveEventSpecification()
                 .AddEventTypes(projectionConfiguration.EventTypes)
-                .WithRange(projection.SequenceNumber + 1, 1)
-                .WithManagedThreadId(Environment.CurrentManagedThreadId);
+                .WithSequenceNumberStart(projection.SequenceNumber + 1)
+                .WithMaximumRows(1);
 
             var primitiveEvents = await _primitiveEventQuery.SearchAsync(specification);
 
@@ -85,7 +84,6 @@ public class ProjectionService : IProjectionService
 
     public async Task SetSequenceNumberAsync(string projectionName, long sequenceNumber)
     {
-        //await using var databaseContext = _databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName);
         await _projectionQuery.SetSequenceNumberAsync(projectionName, sequenceNumber);
     }
 

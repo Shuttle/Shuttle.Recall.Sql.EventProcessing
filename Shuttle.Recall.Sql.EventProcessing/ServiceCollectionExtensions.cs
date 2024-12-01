@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
         {
             options.ConnectionStringName = eventProcessingBuilder.Options.ConnectionStringName;
+            options.Schema = eventProcessingBuilder.Options.Schema;
         });
 
         services.AddHostedService<EventProcessingHostedService>();
