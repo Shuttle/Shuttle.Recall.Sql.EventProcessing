@@ -26,7 +26,7 @@ public class SqlConfiguration
             })
             .AddDataAccessLogging(builder =>
             {
-                builder.Options.DatabaseContext = false;
+                builder.Options.DatabaseContext = true;
                 builder.Options.DbCommandFactory = true;
             })
             .AddSqlEventStorage(builder =>

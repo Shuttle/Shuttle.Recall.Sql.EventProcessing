@@ -19,8 +19,8 @@ public class DatabaseContextObserver :
     private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
     private readonly SqlStorageOptions _sqlStorageOptions;
 
-    private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.EventProcessingObserver:DatabaseContext";
-    private const string DisposeDatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.EventProcessingObserver:DisposeDatabaseContext";
+    private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.DatabaseContextObserver:DatabaseContext";
+    private const string DisposeDatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.DatabaseContextObserver:DisposeDatabaseContext";
 
     public DatabaseContextObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
     {

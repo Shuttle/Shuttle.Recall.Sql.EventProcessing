@@ -6,7 +6,7 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Recall.Sql.EventProcessing;
 
-public class EventProcessingStartupObserver : IPipelineObserver<OnAfterConfigureThreadPools>
+public class EventProcessingStartupObserver : IPipelineObserver<OnAfterStartThreadPools>
 {
     private readonly IProjectionService _projectionService;
 
@@ -15,7 +15,7 @@ public class EventProcessingStartupObserver : IPipelineObserver<OnAfterConfigure
         _projectionService = Guard.AgainstNull(projectionService);
     }
 
-    public async Task ExecuteAsync(IPipelineContext<OnAfterConfigureThreadPools> pipelineContext)
+    public async Task ExecuteAsync(IPipelineContext<OnAfterStartThreadPools> pipelineContext)
     {
         if (_projectionService is not ProjectionService service)
         {

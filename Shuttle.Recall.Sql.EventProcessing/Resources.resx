@@ -121,7 +121,7 @@
     <value>No 'SqlEventProcessingOptions.ConnectionStringName' has been specified.</value>
   </data>
   <data name="ProjectionServiceTypeException" xml:space="preserve">
-    <value>The projection event provider must be of type '{0'; instead found type '{1}'.</value>
+    <value>The projection event service must be of type '{0}'; instead found type '{1}'.</value>
     <comment>0 = required type name, 1 = registered type name</comment>
   </data>
   <data name="SchemaOptionException" xml:space="preserve">

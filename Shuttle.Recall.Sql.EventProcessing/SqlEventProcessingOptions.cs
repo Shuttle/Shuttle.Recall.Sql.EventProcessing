@@ -6,4 +6,5 @@ public class SqlEventProcessingOptions
 
     public string ConnectionStringName { get; set; } = string.Empty;
     public string Schema { get; set; } = "dbo";
+    public int ProjectionJournalSize { get; set; } = 1000;
 }
