@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,26 +13,31 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests;
 
 public class EventProcessingFixture : RecallFixture
 {
+    private static async Task RemoveIds(IServiceProvider serviceProvider, IEnumerable<Guid> ids)
+    {
+        var sqlStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlStorageOptions>>().Value;
+
+        await using (var databaseContext = serviceProvider.GetRequiredService<IDatabaseContextFactory>().Create("StorageConnection"))
+        {
+            await databaseContext.ExecuteAsync(new Query($@"
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[{sqlStorageOptions.Schema}].[PrimitiveEvent]') AND type in (N'U'))
+BEGIN
+    DELETE FROM [{sqlStorageOptions.Schema}].[PrimitiveEvent] WHERE Id IN ({string.Join(',', ids.Select(id => $"'{id}'"))})
+END
+"
+            ));
+        }
+    }
+
     [Test]
     public async Task Should_be_able_to_process_events_async()
     {
         var services = SqlConfiguration.GetServiceCollection();
 
-        IDatabaseContextFactory? databaseContextFactory = null;
-        SqlStorageOptions? sqlStorageOptions = null;
-
         var fixtureConfiguration = new FixtureConfiguration(services)
-            .WithServiceProviderCallback(serviceProvider =>
+            .WithRemoveIdsCallback(async (serviceProvider, ids) =>
             {
-                databaseContextFactory = serviceProvider.GetRequiredService<IDatabaseContextFactory>();
-                sqlStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlStorageOptions>>().Value;
-            })
-            .WithRemoveIdsCallback(async ids =>
-            {
-                await using (var databaseContext = databaseContextFactory!.Create("StorageConnection"))
-                {
-                    await databaseContext.ExecuteAsync(new Query($"DELETE FROM [{sqlStorageOptions!.Schema}].[PrimitiveEvent] WHERE Id IN ({string.Join(',', ids.Select(id => $"'{id}'"))})"));
-                }
+                await RemoveIds(serviceProvider, ids);
             })
             .WithEventStoreBuilderCallback(builder =>
             {
@@ -47,21 +53,10 @@ public class EventProcessingFixture : RecallFixture
     {
         var services = SqlConfiguration.GetServiceCollection();
 
-        IDatabaseContextFactory? databaseContextFactory = null;
-        SqlStorageOptions? sqlStorageOptions = null;
-
         var fixtureConfiguration = new FixtureConfiguration(services)
-            .WithServiceProviderCallback(serviceProvider =>
+            .WithRemoveIdsCallback(async (serviceProvider, ids) =>
             {
-                databaseContextFactory = serviceProvider.GetRequiredService<IDatabaseContextFactory>();
-                sqlStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlStorageOptions>>().Value;
-            })
-            .WithRemoveIdsCallback(async ids =>
-            {
-                await using (var databaseContext = databaseContextFactory!.Create("StorageConnection"))
-                {
-                    await databaseContext.ExecuteAsync(new Query($"DELETE FROM [{sqlStorageOptions!.Schema}].[PrimitiveEvent] WHERE Id IN ({string.Join(',', ids.Select(id => $"'{id}'"))})"));
-                }
+                await RemoveIds(serviceProvider, ids);
             })
             .WithEventStoreBuilderCallback(builder =>
             {
@@ -76,23 +71,12 @@ public class EventProcessingFixture : RecallFixture
     {
         var services = SqlConfiguration.GetServiceCollection();
 
-        IDatabaseContextFactory? databaseContextFactory = null;
-        SqlStorageOptions? sqlStorageOptions = null;
-
         var fixtureConfiguration = new FixtureConfiguration(services)
-            .WithServiceProviderCallback(serviceProvider =>
+            .WithRemoveIdsCallback(async (serviceProvider, ids) =>
             {
-                databaseContextFactory = serviceProvider.GetRequiredService<IDatabaseContextFactory>();
-                sqlStorageOptions = serviceProvider.GetRequiredService<IOptions<SqlStorageOptions>>().Value;
+                await RemoveIds(serviceProvider, ids);
             })
-            .WithRemoveIdsCallback(async ids =>
-            {
-                await using (var databaseContext = databaseContextFactory!.Create("StorageConnection"))
-                {
-                    await databaseContext.ExecuteAsync(new Query($"DELETE FROM [{sqlStorageOptions!.Schema}].[PrimitiveEvent] WHERE Id IN ({string.Join(',', ids.Select(id => $"'{id}'"))})"));
-                }
-            })
-            .WithEventStreamTaskCallback(async task =>
+            .WithEventStreamTaskCallback(async (_, task) =>
             {
                 using (new DatabaseContextScope())
                 {
