@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +56,7 @@ public class ProjectionService : IProjectionService
                 _roundRobinIndex = 0;
             }
 
-            projection = _projections[_roundRobinIndex];
+            projection = _projections[_roundRobinIndex++];
         }
         finally
         {
@@ -83,10 +84,19 @@ public class ProjectionService : IProjectionService
     {
         await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
         {
-            await _projectionQuery.CompleteAsync(projectionEvent);
+            await _projectionRepository.CompleteAsync(projectionEvent);
         }
 
-        _projectionThreadPrimitiveEvents[projectionEvent.Projection.Name].RemoveAll(item => item.PrimitiveEvent.SequenceNumber == projectionEvent.PrimitiveEvent.SequenceNumber);
+        await _lock.WaitAsync();
+
+        try
+        {
+            _projectionThreadPrimitiveEvents[projectionEvent.Projection.Name].RemoveAll(item => item.PrimitiveEvent.SequenceNumber == projectionEvent.PrimitiveEvent.SequenceNumber);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     private async Task GetProjectionJournalAsync(Projection projection)
@@ -110,7 +120,7 @@ public class ProjectionService : IProjectionService
 
                 foreach (var primitiveEvent in (await _primitiveEventQuery.SearchAsync(specification)).OrderBy(item => item.SequenceNumber))
                 {
-                    var managedThreadId = _managedThreadIds[(primitiveEvent.CorrelationId ?? primitiveEvent.Id).GetHashCode() % _managedThreadIds.Length];
+                    var managedThreadId = _managedThreadIds[GetManagedThreadIdIndex(primitiveEvent)];
 
                     _projectionThreadPrimitiveEvents[projection.Name].Add(new(managedThreadId, primitiveEvent));
 
@@ -120,7 +130,13 @@ public class ProjectionService : IProjectionService
 
             await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
             {
-                await _projectionRepository.SetSequenceNumberAsync(projection.Name, await _projectionQuery.GetJournalSequenceNumberAsync(projection.Name));
+                var journalSequenceNumberAsync = await _projectionQuery.GetJournalSequenceNumberAsync(projection.Name);
+
+                if (journalSequenceNumberAsync > 0)
+                {
+                    await _projectionRepository.SetSequenceNumberAsync(projection.Name, journalSequenceNumberAsync);
+                }
+
                 await _projectionRepository.RegisterJournalSequenceNumbersAsync(projection.Name, journalSequenceNumbers).ConfigureAwait(false);
             }
         }
@@ -128,6 +144,11 @@ public class ProjectionService : IProjectionService
         {
             _lock.Release();
         }
+    }
+
+    private int GetManagedThreadIdIndex(PrimitiveEvent primitiveEvent)
+    {
+        return Math.Abs((primitiveEvent.CorrelationId ?? primitiveEvent.Id).GetHashCode()) % _managedThreadIds.Length;
     }
 
     public async Task StartupAsync(IProcessorThreadPool processorThreadPool)
@@ -171,7 +192,7 @@ public class ProjectionService : IProjectionService
 
                     foreach (var primitiveEvent in (await _primitiveEventQuery.SearchAsync(specification)).OrderBy(item => item.SequenceNumber))
                     {
-                        var managedThreadId = _managedThreadIds[(primitiveEvent.CorrelationId ?? primitiveEvent.Id).GetHashCode() % _managedThreadIds.Length];
+                        var managedThreadId = _managedThreadIds[GetManagedThreadIdIndex(primitiveEvent)];
 
                         _projectionThreadPrimitiveEvents[pair.Key].Add(new(managedThreadId, primitiveEvent));
                     }

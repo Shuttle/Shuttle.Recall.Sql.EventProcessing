@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
-using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing;
 

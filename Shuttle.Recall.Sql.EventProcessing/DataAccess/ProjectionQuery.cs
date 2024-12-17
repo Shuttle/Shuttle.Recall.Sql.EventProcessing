@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -12,16 +11,11 @@ public class ProjectionQuery : IProjectionQuery
     private readonly IDatabaseContextService _databaseContextService;
     private readonly IProjectionQueryFactory _queryFactory;
 
-    public ProjectionQuery(IDatabaseContextService databaseContextService, IProjectionQueryFactory queryFactory, IQueryMapper queryMapper)
+    public ProjectionQuery(IDatabaseContextService databaseContextService, IProjectionQueryFactory projectionQueryFactory, IQueryMapper queryMapper)
     {
         _databaseContextService = Guard.AgainstNull(databaseContextService);
-        _queryFactory = Guard.AgainstNull(queryFactory);
+        _queryFactory = Guard.AgainstNull(projectionQueryFactory);
         _queryMapper = Guard.AgainstNull(queryMapper);
-    }
-
-    public async Task SetSequenceNumberAsync(string name, long sequenceNumber)
-    {
-        await _databaseContextService.Active.ExecuteAsync(_queryFactory.SetSequenceNumber(Guard.AgainstNullOrEmptyString(name), sequenceNumber)).ConfigureAwait(false);
     }
 
     public async ValueTask<long> GetJournalSequenceNumberAsync(string name)
@@ -32,10 +26,5 @@ public class ProjectionQuery : IProjectionQuery
     public async Task<IEnumerable<long>> GetIncompleteSequenceNumbers(string name)
     {
         return await _queryMapper.MapValuesAsync<long>(_queryFactory.GetIncompleteSequenceNumbers(name));
-    }
-
-    public async Task CompleteAsync(ProjectionEvent projectionEvent)
-    {
-        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Complete(projectionEvent));
     }
 }

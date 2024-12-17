@@ -32,4 +32,9 @@ public class ProjectionRepository : IProjectionRepository
     {
         await _databaseContextService.Active.ExecuteAsync(_projectionQueryFactory.RegisterJournalSequenceNumbers(name, sequenceNumbers));
     }
+
+    public async Task CompleteAsync(ProjectionEvent projectionEvent)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_projectionQueryFactory.Complete(projectionEvent));
+    }
 }
