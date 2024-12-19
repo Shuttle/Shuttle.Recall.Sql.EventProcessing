@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Core.Pipelines;
 using Shuttle.Core.Threading;
 using Shuttle.Recall.Sql.Storage;
 
@@ -14,6 +16,7 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 public class ProjectionService : IProjectionService
 {
     private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly IDatabaseContextService _databaseContextService;
     private readonly SqlEventProcessingOptions _eventProcessingOptions;
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
     private readonly SemaphoreSlim _lock = new(1, 1);
@@ -27,10 +30,11 @@ public class ProjectionService : IProjectionService
     private Projection[] _projections = [];
     private int _roundRobinIndex;
 
-    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
+    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
     {
         _storageOptions = Guard.AgainstNull(Guard.AgainstNull(storageOptions).Value);
         _eventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions).Value);
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
         _projectionRepository = Guard.AgainstNull(projectionRepository);
         _projectionQuery = Guard.AgainstNull(projectionQuery);
@@ -38,8 +42,10 @@ public class ProjectionService : IProjectionService
         _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
     }
 
-    public async Task<ProjectionEvent?> GetProjectionEventAsync(int processorThreadManagedThreadId)
+    public async Task<ProjectionEvent?> GetEventAsync(IPipelineContext<OnGetEvent> pipelineContext)
     {
+        var processorThreadManagedThreadId = Guard.AgainstNull(pipelineContext).Pipeline.State.GetProcessorThreadManagedThreadId();
+
         Projection? projection;
 
         if (_projections.Length == 0)
@@ -80,12 +86,11 @@ public class ProjectionService : IProjectionService
         return threadPrimitiveEvent == null ? null : new ProjectionEvent(projection, threadPrimitiveEvent.PrimitiveEvent);
     }
 
-    public async Task AcknowledgeAsync(ProjectionEvent projectionEvent)
+    public async Task AcknowledgeEventAsync(IPipelineContext<OnAcknowledgeEvent> pipelineContext)
     {
-        await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
-        {
-            await _projectionRepository.CompleteAsync(projectionEvent);
-        }
+        var projectionEvent = Guard.AgainstNull(pipelineContext).Pipeline.State.GetProjectionEvent();
+
+        await _projectionRepository.CompleteAsync(projectionEvent);
 
         await _lock.WaitAsync();
 
@@ -97,6 +102,11 @@ public class ProjectionService : IProjectionService
         {
             _lock.Release();
         }
+    }
+
+    private int GetManagedThreadIdIndex(PrimitiveEvent primitiveEvent)
+    {
+        return Math.Abs((primitiveEvent.CorrelationId ?? primitiveEvent.Id).GetHashCode()) % _managedThreadIds.Length;
     }
 
     private async Task GetProjectionJournalAsync(Projection projection)
@@ -112,6 +122,7 @@ public class ProjectionService : IProjectionService
 
             var journalSequenceNumbers = new List<long>();
 
+            using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
             await using (_databaseContextFactory.Create(_storageOptions.ConnectionStringName))
             {
                 var specification = new PrimitiveEventSpecification()
@@ -146,11 +157,6 @@ public class ProjectionService : IProjectionService
         }
     }
 
-    private int GetManagedThreadIdIndex(PrimitiveEvent primitiveEvent)
-    {
-        return Math.Abs((primitiveEvent.CorrelationId ?? primitiveEvent.Id).GetHashCode()) % _managedThreadIds.Length;
-    }
-
     public async Task StartupAsync(IProcessorThreadPool processorThreadPool)
     {
         Guard.AgainstNull(processorThreadPool);
@@ -163,7 +169,7 @@ public class ProjectionService : IProjectionService
         {
             await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
             {
-                List<Projection> projections = new();
+                List<Projection> projections = [];
 
                 foreach (var projectionConfiguration in _eventProcessorConfiguration.Projections)
                 {

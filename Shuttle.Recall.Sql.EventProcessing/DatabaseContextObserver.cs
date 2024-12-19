@@ -14,17 +14,14 @@ public class DatabaseContextObserver :
     IPipelineObserver<OnPipelineException>,
     IPipelineObserver<OnAbortPipeline>
 {
-    private readonly IDatabaseContextService _databaseContextService;
+    private const string EventProcessingDatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.DatabaseContextObserver:EventProcessingDatabaseContext";
+
     private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly IDatabaseContextService _databaseContextService;
     private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
-    private readonly SqlStorageOptions _sqlStorageOptions;
 
-    private const string DatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.DatabaseContextObserver:DatabaseContext";
-    private const string DisposeDatabaseContextStateKey = "Shuttle.Recall.Sql.EventProcessing.DatabaseContextObserver:DisposeDatabaseContext";
-
-    public DatabaseContextObserver(IOptions<SqlStorageOptions> sqlStorageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
+    public DatabaseContextObserver(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory)
     {
-        _sqlStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlStorageOptions).Value);
         _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions.Value));
         _databaseContextService = Guard.AgainstNull(databaseContextService);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
@@ -49,30 +46,12 @@ public class DatabaseContextObserver :
     {
         switch (Guard.AgainstNull(pipelineContext).Pipeline.StageName.ToUpperInvariant())
         {
-            case "EVENTPROCESSING.READ":
+            case "HANDLE":
             {
-                var hasDatabaseContext = _databaseContextService.Contains(_sqlStorageOptions.ConnectionStringName);
-
-                pipelineContext.Pipeline.State.Add(DisposeDatabaseContextStateKey, !hasDatabaseContext);
-
-                if (!hasDatabaseContext)
-                {
-                    pipelineContext.Pipeline.State.Add(DatabaseContextStateKey, _databaseContextFactory.Create(_sqlStorageOptions.ConnectionStringName));
-                }
-
-                break;
-            }
-            case "EVENTPROCESSING.HANDLE":
-            {
-                var hasDatabaseContext = _databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName);
-
-                pipelineContext.Pipeline.State.Add(DisposeDatabaseContextStateKey, !hasDatabaseContext);
-
-                if (!hasDatabaseContext)
-                {
-                    pipelineContext.Pipeline.State.Add(DatabaseContextStateKey, _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName));
-                }
-
+                pipelineContext.Pipeline.State.Replace(EventProcessingDatabaseContextStateKey,
+                    !_databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName)
+                        ? _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName)
+                        : null);
 
                 break;
             }
@@ -83,14 +62,8 @@ public class DatabaseContextObserver :
 
     private async Task DisposeDatabaseContextAsync(IPipelineContext pipelineContext)
     {
-        var databaseContext = Guard.AgainstNull(pipelineContext).Pipeline.State.Get(DatabaseContextStateKey);
+        await (Guard.AgainstNull(pipelineContext).Pipeline.State.Get(EventProcessingDatabaseContextStateKey)?.TryDisposeAsync() ?? Task.CompletedTask);
 
-        if (databaseContext != null)
-        {
-            await databaseContext.TryDisposeAsync();
-        }
-
-        pipelineContext.Pipeline.State.Remove(DatabaseContextStateKey);
-        pipelineContext.Pipeline.State.Remove(DisposeDatabaseContextStateKey);
+        pipelineContext.Pipeline.State.Remove(EventProcessingDatabaseContextStateKey);
     }
 }
