@@ -44,9 +44,9 @@ BEGIN
     EXEC('CREATE SCHEMA {_sqlEventProcessingOptions.Schema}');
 END
 
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Recall].[Projection]') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[{_sqlEventProcessingOptions.Schema}].[Projection]') AND type in (N'U'))
 BEGIN
-    CREATE TABLE [Recall].[Projection]
+    CREATE TABLE [{_sqlEventProcessingOptions.Schema}].[Projection]
     (
 	    [Name] [nvarchar](650) NOT NULL,
 	    [SequenceNumber] [bigint] NOT NULL,
@@ -61,9 +61,9 @@ BEGIN
     ) ON [PRIMARY]
 END
 
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Recall].[ProjectionJournal]') AND type in (N'U'))
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[{_sqlEventProcessingOptions.Schema}].[ProjectionJournal]') AND type in (N'U'))
 BEGIN
-    CREATE TABLE [Recall].[ProjectionJournal]
+    CREATE TABLE [{_sqlEventProcessingOptions.Schema}].[ProjectionJournal]
     (
 	    [Name] [nvarchar](650) NOT NULL,
 	    [SequenceNumber] [bigint] NOT NULL,
