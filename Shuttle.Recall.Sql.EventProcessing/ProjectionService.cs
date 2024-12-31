@@ -16,7 +16,6 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 public class ProjectionService : IProjectionService
 {
     private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly IDatabaseContextService _databaseContextService;
     private readonly SqlEventProcessingOptions _eventProcessingOptions;
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
     private readonly SemaphoreSlim _lock = new(1, 1);
@@ -30,11 +29,10 @@ public class ProjectionService : IProjectionService
     private Projection[] _projections = [];
     private int _roundRobinIndex;
 
-    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
+    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
     {
         _storageOptions = Guard.AgainstNull(Guard.AgainstNull(storageOptions).Value);
         _eventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions).Value);
-        _databaseContextService = Guard.AgainstNull(databaseContextService);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
         _projectionRepository = Guard.AgainstNull(projectionRepository);
         _projectionQuery = Guard.AgainstNull(projectionQuery);

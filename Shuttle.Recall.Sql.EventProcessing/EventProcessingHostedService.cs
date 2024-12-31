@@ -39,6 +39,8 @@ public class EventProcessingHostedService : IHostedService
         await using (var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
         {
             await databaseContext.ExecuteAsync(new Query($@"
+EXEC sp_getapplock @Resource = '{typeof(EventProcessingHostedService).FullName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = 15000;
+
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = '{_sqlEventProcessingOptions.Schema}')
 BEGIN
     EXEC('CREATE SCHEMA {_sqlEventProcessingOptions.Schema}');
@@ -79,6 +81,8 @@ BEGIN
         ) ON [PRIMARY]
     ) ON [PRIMARY]
 END
+
+EXEC sp_releaseapplock @Resource = '{typeof(EventProcessingHostedService).FullName}', @LockOwner = 'Session';
 "));
         }
     }
