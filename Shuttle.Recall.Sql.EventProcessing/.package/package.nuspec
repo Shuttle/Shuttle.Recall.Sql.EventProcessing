@@ -12,7 +12,7 @@
 		<readme>docs\README.md</readme>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Recall.Sql.EventProcessing.git" />
 		<description>Sql-based implementation of the event store Shuttle.Recall projection interfaces.</description>
-		<copyright>Copyright (c) 2024, Eben Roux</copyright>
+		<copyright>Copyright (c) 2025, Eben Roux</copyright>
 		<tags>eventsourcing eventsource event-sourcing event-source eventstore event-store project event-processing eventprocessing</tags>
 		<dependencies>
       <dependency id="Shuttle.Core.Contract" version="20.0.0" />

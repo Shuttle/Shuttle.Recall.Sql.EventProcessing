@@ -123,7 +123,7 @@ public class ProjectionService : IProjectionService
             using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
             await using (_databaseContextFactory.Create(_storageOptions.ConnectionStringName))
             {
-                var specification = new PrimitiveEventSpecification()
+                var specification = new PrimitiveEvent.Specification()
                     .WithMaximumRows(_eventProcessingOptions.ProjectionJournalSize)
                     .WithSequenceNumberStart(projection.SequenceNumber + 1);
 
@@ -190,7 +190,7 @@ public class ProjectionService : IProjectionService
                         continue;
                     }
 
-                    var specification = new PrimitiveEventSpecification();
+                    var specification = new PrimitiveEvent.Specification();
 
                     specification.WithSequenceNumbers(pair.Value);
 
