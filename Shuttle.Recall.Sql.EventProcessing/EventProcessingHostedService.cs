@@ -98,8 +98,11 @@ EXEC sp_releaseapplock @Resource = '{typeof(EventProcessingHostedService).FullNa
     {
         var pipelineType = e.Pipeline.GetType();
 
-        if (pipelineType == _eventProcessingPipelineType ||
-            pipelineType == _eventProcessorStartupPipelineType)
+        if (_sqlEventProcessingOptions.RegisterDatabaseContextObserver &&
+            (
+                pipelineType == _eventProcessingPipelineType ||
+                pipelineType == _eventProcessorStartupPipelineType
+            ))
         {
             e.Pipeline.AddObserver(_databaseContextObserver);
         }

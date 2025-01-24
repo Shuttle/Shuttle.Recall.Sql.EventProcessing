@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Recall.Sql.EventProcessing;
 
@@ -25,6 +26,9 @@ public static class ServiceCollectionExtensions
         {
             options.ConnectionStringName = eventProcessingBuilder.Options.ConnectionStringName;
             options.Schema = eventProcessingBuilder.Options.Schema;
+            options.ConfigureDatabase = eventProcessingBuilder.Options.ConfigureDatabase;
+            options.RegisterDatabaseContextObserver = eventProcessingBuilder.Options.RegisterDatabaseContextObserver;
+            options.ProjectionJournalSize = eventProcessingBuilder.Options.ProjectionJournalSize;
         });
 
         services.AddHostedService<EventProcessingHostedService>();

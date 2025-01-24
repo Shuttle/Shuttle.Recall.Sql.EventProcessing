@@ -8,4 +8,5 @@ public class SqlEventProcessingOptions
     public string Schema { get; set; } = "dbo";
     public int ProjectionJournalSize { get; set; } = 1000;
     public bool ConfigureDatabase { get; set; } = true;
+    public bool RegisterDatabaseContextObserver { get; set; } = true;
 }

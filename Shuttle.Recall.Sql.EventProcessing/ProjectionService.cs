@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
+using Shuttle.Core.Reflection;
 using Shuttle.Core.Threading;
 using Shuttle.Recall.Sql.Storage;
 
@@ -15,11 +16,13 @@ namespace Shuttle.Recall.Sql.EventProcessing;
 
 public class ProjectionService : IProjectionService
 {
+    private readonly IDatabaseContextService _databaseContextService;
     private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly SqlEventProcessingOptions _eventProcessingOptions;
+    private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
     private readonly IEventProcessorConfiguration _eventProcessorConfiguration;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly IPrimitiveEventQuery _primitiveEventQuery;
+    private readonly IPrimitiveEventRepository _primitiveEventRepository;
     private readonly IProjectionQuery _projectionQuery;
     private readonly IProjectionRepository _projectionRepository;
     private readonly Dictionary<string, List<ThreadPrimitiveEvent>> _projectionThreadPrimitiveEvents = new();
@@ -29,13 +32,15 @@ public class ProjectionService : IProjectionService
     private Projection[] _projections = [];
     private int _roundRobinIndex;
 
-    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
+    public ProjectionService(IOptions<SqlStorageOptions> storageOptions, IOptions<SqlEventProcessingOptions> eventProcessingOptions, IDatabaseContextService databaseContextService, IDatabaseContextFactory databaseContextFactory, IProjectionRepository projectionRepository, IProjectionQuery projectionQuery, IPrimitiveEventRepository primitiveEventRepository, IPrimitiveEventQuery primitiveEventQuery, IEventProcessorConfiguration eventProcessorConfiguration)
     {
         _storageOptions = Guard.AgainstNull(Guard.AgainstNull(storageOptions).Value);
-        _eventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions).Value);
+        _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions).Value);
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
         _projectionRepository = Guard.AgainstNull(projectionRepository);
         _projectionQuery = Guard.AgainstNull(projectionQuery);
+        _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
         _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
         _eventProcessorConfiguration = Guard.AgainstNull(eventProcessorConfiguration);
     }
@@ -88,7 +93,18 @@ public class ProjectionService : IProjectionService
     {
         var projectionEvent = Guard.AgainstNull(pipelineContext).Pipeline.State.GetProjectionEvent();
 
-        await _projectionRepository.CompleteAsync(projectionEvent);
+        var databaseContext = !_databaseContextService.Contains(_sqlEventProcessingOptions.ConnectionStringName)
+            ? _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName)
+            : null;
+
+        try
+        {
+            await _projectionRepository.CompleteAsync(projectionEvent);
+        }
+        finally
+        {
+            await (databaseContext?.TryDisposeAsync() ?? Task.CompletedTask);
+        }
 
         await _lock.WaitAsync();
 
@@ -120,12 +136,22 @@ public class ProjectionService : IProjectionService
 
             var journalSequenceNumbers = new List<long>();
 
+            long sequenceNumberEnd;
+
             using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
             await using (_databaseContextFactory.Create(_storageOptions.ConnectionStringName))
             {
+                var sequenceNumberStart = projection.SequenceNumber + 1;
+                sequenceNumberEnd = await _primitiveEventRepository.GetMaxSequenceNumberAsync();
+
+                if (sequenceNumberEnd > sequenceNumberStart + _sqlEventProcessingOptions.ProjectionJournalSize)
+                {
+                    sequenceNumberEnd = sequenceNumberStart + _sqlEventProcessingOptions.ProjectionJournalSize;
+                }
+
                 var specification = new PrimitiveEvent.Specification()
-                    .WithMaximumRows(_eventProcessingOptions.ProjectionJournalSize)
-                    .WithSequenceNumberStart(projection.SequenceNumber + 1);
+                    .WithSequenceNumberStart(sequenceNumberStart)
+                    .WithSequenceNumberEnd(sequenceNumberEnd);
 
                 foreach (var primitiveEvent in (await _primitiveEventQuery.SearchAsync(specification)).OrderBy(item => item.SequenceNumber))
                 {
@@ -137,16 +163,10 @@ public class ProjectionService : IProjectionService
                 }
             }
 
-            await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
+            await using (_databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
             {
-                var journalSequenceNumberAsync = await _projectionQuery.GetJournalSequenceNumberAsync(projection.Name);
-
-                if (journalSequenceNumberAsync > 0)
-                {
-                    await _projectionRepository.SetSequenceNumberAsync(projection.Name, journalSequenceNumberAsync);
-                }
-
                 await _projectionRepository.RegisterJournalSequenceNumbersAsync(projection.Name, journalSequenceNumbers).ConfigureAwait(false);
+                await _projectionRepository.SetSequenceNumberAsync(projection.Name, sequenceNumberEnd);
             }
         }
         finally
@@ -165,7 +185,7 @@ public class ProjectionService : IProjectionService
 
         using (new DatabaseContextScope())
         {
-            await using (_databaseContextFactory.Create(_eventProcessingOptions.ConnectionStringName))
+            await using (_databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
             {
                 List<Projection> projections = [];
 

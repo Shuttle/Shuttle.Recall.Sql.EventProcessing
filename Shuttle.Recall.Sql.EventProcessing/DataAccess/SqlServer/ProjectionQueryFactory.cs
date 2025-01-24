@@ -51,36 +51,6 @@ WHERE
             .AddParameter(Columns.Name, name);
     }
 
-    public IQuery Save(Projection projection)
-    {
-        Guard.AgainstNull(projection);
-
-        return new Query(@$"
-IF NOT EXISTS (SELECT NULL FROM [{_sqlEventProcessingOptions.Schema}].[Projection] WHERE [Name] = @Name)
-BEGIN
-    INSERT INTO [{_sqlEventProcessingOptions.Schema}].[Projection] 
-    (
-        [Name], 
-        [SequenceNumber]
-    ) 
-    VALUES 
-    (
-        @Name, 
-        0
-    )
-END
-ELSE
-    UPDATE 
-        [{_sqlEventProcessingOptions.Schema}].[Projection] 
-    SET 
-        SequenceNumber = @SequenceNumber 
-    WHERE 
-        [Name] = @Name
-")
-            .AddParameter(Columns.Name, projection.Name)
-            .AddParameter(Columns.SequenceNumber, projection.SequenceNumber);
-    }
-
     public IQuery GetIncompleteSequenceNumbers(string name)
     {
         return new Query($@"
@@ -136,18 +106,5 @@ VALUES
 ");
         }
         return new Query(sql.ToString()).AddParameter(Columns.Name, name);
-    }
-
-    public IQuery GetJournalSequenceNumber(string name)
-    {
-        return new Query($@"
-SELECT 
-    ISNULL(MAX(SequenceNumber), 0)
-FROM 
-    [{_sqlEventProcessingOptions.Schema}].[ProjectionJournal] 
-WHERE 
-    [Name] = @Name
-")
-            .AddParameter(Columns.Name, name);
     }
 }
