@@ -163,10 +163,12 @@ public class ProjectionService : IProjectionService
                 }
             }
 
+            var journalSequenceNumberEnd = journalSequenceNumbers.Max();
+
             await using (_databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
             {
                 await _projectionRepository.RegisterJournalSequenceNumbersAsync(projection.Name, journalSequenceNumbers).ConfigureAwait(false);
-                await _projectionRepository.SetSequenceNumberAsync(projection.Name, sequenceNumberEnd);
+                await _projectionRepository.SetSequenceNumberAsync(projection.Name, journalSequenceNumberEnd > sequenceNumberEnd ? journalSequenceNumberEnd : sequenceNumberEnd);
             }
         }
         finally
