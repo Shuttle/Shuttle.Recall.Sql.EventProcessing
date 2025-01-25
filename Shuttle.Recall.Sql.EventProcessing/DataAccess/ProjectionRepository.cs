@@ -28,7 +28,7 @@ public class ProjectionRepository : IProjectionRepository
         await _databaseContextService.Active.ExecuteAsync(_projectionQueryFactory.SetSequenceNumber(name, sequenceNumber));
     }
 
-    public async Task RegisterJournalSequenceNumbersAsync(string name, List<long> sequenceNumbers)
+    public async Task RegisterJournalSequenceNumbersAsync(string name, IEnumerable<long> sequenceNumbers)
     {
         await _databaseContextService.Active.ExecuteAsync(_projectionQueryFactory.RegisterJournalSequenceNumbers(name, sequenceNumbers));
     }

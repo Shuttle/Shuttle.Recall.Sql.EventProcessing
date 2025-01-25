@@ -141,17 +141,16 @@ public class ProjectionService : IProjectionService
             using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
             await using (_databaseContextFactory.Create(_storageOptions.ConnectionStringName))
             {
-                var sequenceNumberStart = projection.SequenceNumber + 1;
                 sequenceNumberEnd = await _primitiveEventRepository.GetMaxSequenceNumberAsync();
 
-                if (sequenceNumberEnd > sequenceNumberStart + _sqlEventProcessingOptions.ProjectionJournalSize)
+                if (sequenceNumberEnd > projection.SequenceNumber + _sqlEventProcessingOptions.ProjectionJournalSize)
                 {
-                    sequenceNumberEnd = sequenceNumberStart + _sqlEventProcessingOptions.ProjectionJournalSize;
+                    sequenceNumberEnd = projection.SequenceNumber + _sqlEventProcessingOptions.ProjectionJournalSize;
                 }
 
                 var specification = new PrimitiveEvent.Specification()
-                    .WithSequenceNumberStart(sequenceNumberStart)
-                    .WithSequenceNumberEnd(sequenceNumberEnd);
+                    .WithMaximumRows(_sqlEventProcessingOptions.ProjectionJournalSize)
+                    .WithSequenceNumberStart(projection.SequenceNumber + 1);
 
                 foreach (var primitiveEvent in (await _primitiveEventQuery.SearchAsync(specification)).OrderBy(item => item.SequenceNumber))
                 {
@@ -163,7 +162,7 @@ public class ProjectionService : IProjectionService
                 }
             }
 
-            var journalSequenceNumberEnd = journalSequenceNumbers.Max();
+            var journalSequenceNumberEnd = journalSequenceNumbers.Any() ? journalSequenceNumbers.Max() : 0;
 
             await using (_databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
             {

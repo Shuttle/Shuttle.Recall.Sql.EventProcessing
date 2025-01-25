@@ -9,5 +9,5 @@ public interface IProjectionQueryFactory
     IQuery Get(string name);
     IQuery GetIncompleteSequenceNumbers(string name);
     IQuery Complete(ProjectionEvent projectionEvent);
-    IQuery RegisterJournalSequenceNumbers(string name, List<long> sequenceNumbers);
+    IQuery RegisterJournalSequenceNumbers(string name, IEnumerable<long> sequenceNumbers);
 }

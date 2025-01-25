@@ -82,7 +82,7 @@ AND
             .AddParameter(Columns.SequenceNumber, projectionEvent.PrimitiveEvent.SequenceNumber);
     }
 
-    public IQuery RegisterJournalSequenceNumbers(string name, List<long> sequenceNumbers)
+    public IQuery RegisterJournalSequenceNumbers(string name, IEnumerable<long> sequenceNumbers)
     {
         var sql = new StringBuilder($@"
 DELETE
@@ -94,7 +94,9 @@ WHERE
 
         if (sequenceNumbers.Any())
         {
-            sql.Append($@"
+            foreach (var chunk in sequenceNumbers.Chunk(_sqlEventProcessingOptions.ProjectionJournalChunkSize))
+            {
+                sql.Append($@"
 INSERT INTO 
     [{_sqlEventProcessingOptions.Schema}].[ProjectionJournal]
 (
@@ -102,8 +104,10 @@ INSERT INTO
     [SequenceNumber]
 )
 VALUES
-    {string.Join(",", sequenceNumbers.Select(sequenceNumber => $"(@Name, {sequenceNumber})"))} 
+    {string.Join(",", chunk.Select(sequenceNumber => $"(@Name, {sequenceNumber})"))} 
+;
 ");
+            }
         }
         return new Query(sql.ToString()).AddParameter(Columns.Name, name);
     }

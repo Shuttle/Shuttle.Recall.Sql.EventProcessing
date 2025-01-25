@@ -9,4 +9,5 @@ public class SqlEventProcessingOptions
     public int ProjectionJournalSize { get; set; } = 1000;
     public bool ConfigureDatabase { get; set; } = true;
     public bool RegisterDatabaseContextObserver { get; set; } = true;
+    public int ProjectionJournalChunkSize { get; set; } = 500;
 }

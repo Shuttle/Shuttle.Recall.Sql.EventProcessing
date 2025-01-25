@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
             options.ConfigureDatabase = eventProcessingBuilder.Options.ConfigureDatabase;
             options.RegisterDatabaseContextObserver = eventProcessingBuilder.Options.RegisterDatabaseContextObserver;
             options.ProjectionJournalSize = eventProcessingBuilder.Options.ProjectionJournalSize;
+            options.ProjectionJournalChunkSize = eventProcessingBuilder.Options.ProjectionJournalChunkSize;
         });
 
         services.AddHostedService<EventProcessingHostedService>();
