@@ -18,7 +18,16 @@ public class ProjectionQueryFactory : IProjectionQueryFactory
 
     public IQuery SetSequenceNumber(string name, long sequenceNumber)
     {
-        return new Query($"UPDATE [{_sqlEventProcessingOptions.Schema}].[Projection] SET SequenceNumber = @SequenceNumber WHERE [Name] = @Name")
+        return new Query(@$"
+UPDATE 
+    [{_sqlEventProcessingOptions.Schema}].[Projection] 
+SET 
+    SequenceNumber = @SequenceNumber 
+WHERE 
+    [Name] = @Name
+AND
+    SequenceNumber < @SequenceNumber
+")
             .AddParameter(Columns.Name, name)
             .AddParameter(Columns.SequenceNumber, sequenceNumber);
     }
