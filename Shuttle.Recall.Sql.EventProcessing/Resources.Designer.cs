@@ -63,9 +63,27 @@ namespace Shuttle.Recall.Sql.EventProcessing {
         /// <summary>
         ///   Looks up a localized string similar to No &apos;SqlEventProcessingOptions.ConnectionStringName&apos; has been specified..
         /// </summary>
-        internal static string ConnectionStringException {
+        internal static string ConnectionStringOptionException {
             get {
-                return ResourceManager.GetString("ConnectionStringException", resourceCulture);
+                return ResourceManager.GetString("ConnectionStringOptionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The projection event service must be of type &apos;{0}&apos;; instead found type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ProjectionServiceTypeException {
+            get {
+                return ResourceManager.GetString("ProjectionServiceTypeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No &apos;SqlEventProcessingOptions.Schema&apos; has been specified..
+        /// </summary>
+        internal static string SchemaOptionException {
+            get {
+                return ResourceManager.GetString("SchemaOptionException", resourceCulture);
             }
         }
     }

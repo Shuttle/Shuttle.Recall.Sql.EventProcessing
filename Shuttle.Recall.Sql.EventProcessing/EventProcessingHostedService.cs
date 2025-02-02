@@ -6,61 +6,110 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Pipelines;
-using Shuttle.Core.Reflection;
-using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Recall.Sql.EventProcessing
+namespace Shuttle.Recall.Sql.EventProcessing;
+
+public class EventProcessingHostedService : IHostedService
 {
-    public class EventProcessingHostedService : IHostedService
+    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly SqlEventProcessingOptions _sqlEventProcessingOptions;
+
+    private readonly DatabaseContextObserver _databaseContextObserver;
+    private readonly Type _eventProcessingPipelineType = typeof(EventProcessingPipeline);
+    private readonly Type _eventProcessorStartupPipelineType = typeof(EventProcessorStartupPipeline);
+    private readonly IPipelineFactory _pipelineFactory;
+
+    public EventProcessingHostedService(IOptions<SqlEventProcessingOptions> sqlEventProcessingOptions, IPipelineFactory pipelineFactory, IDatabaseContextFactory databaseContextFactory, DatabaseContextObserver databaseContextObserver)
     {
-        private readonly Type _eventProcessorStartupPipeline = typeof(EventProcessorStartupPipeline);
-        private readonly Type _eventProcessingPipelineType = typeof(EventProcessingPipeline);
-        private readonly Type _eventProcessorStartupPipelineType = typeof(EventProcessorStartupPipeline);
-        private readonly Type _addProjectionPipeline = typeof(AddProjectionPipeline);
+        _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlEventProcessingOptions).Value);
+        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
+        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+        _databaseContextObserver = Guard.AgainstNull(databaseContextObserver);
 
-        private readonly IDatabaseContextService _databaseContextService;
-        private readonly AddProjectionObserver _addProjectionObserver;
-        private readonly EventProcessingObserver _eventProcessingObserver;
-        private readonly IPipelineFactory _pipelineFactory;
-        private readonly SqlEventProcessingOptions _eventProcessingOptions;
+        _pipelineFactory.PipelineCreated += OnPipelineCreated;
+    }
 
-        public EventProcessingHostedService(IOptions<SqlEventProcessingOptions> eventProcessingOptions, IPipelineFactory pipelineFactory, IDatabaseContextService databaseContextService, EventProcessingObserver eventProcessingObserver, AddProjectionObserver addProjectionObserver)
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (!_sqlEventProcessingOptions.ConfigureDatabase)
         {
-            _eventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(eventProcessingOptions, nameof(eventProcessingOptions)).Value, nameof(eventProcessingOptions.Value));
-            _pipelineFactory = Guard.AgainstNull(pipelineFactory, nameof(pipelineFactory));
-            _databaseContextService = Guard.AgainstNull(databaseContextService, nameof(databaseContextService));
-            _eventProcessingObserver = Guard.AgainstNull(eventProcessingObserver, nameof(EventProcessingObserver));
-            _addProjectionObserver = Guard.AgainstNull(addProjectionObserver, nameof(addProjectionObserver));
-
-            _pipelineFactory.PipelineCreated += OnPipelineCreated;
+            return;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        await using (var databaseContext = _databaseContextFactory.Create(_sqlEventProcessingOptions.ConnectionStringName))
         {
-            await Task.CompletedTask;
+            await databaseContext.ExecuteAsync(new Query($@"
+EXEC sp_getapplock @Resource = '{typeof(EventProcessingHostedService).FullName}', @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = 15000;
+
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = '{_sqlEventProcessingOptions.Schema}')
+BEGIN
+    EXEC('CREATE SCHEMA {_sqlEventProcessingOptions.Schema}');
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[{_sqlEventProcessingOptions.Schema}].[Projection]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [{_sqlEventProcessingOptions.Schema}].[Projection]
+    (
+	    [Name] [nvarchar](650) NOT NULL,
+	    [SequenceNumber] [bigint] NOT NULL,
+        CONSTRAINT [PK_Projection] PRIMARY KEY CLUSTERED 
+        (
+	        [Name] ASC
+        )
+        WITH 
+        (
+            PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF
+        ) ON [PRIMARY]
+    ) ON [PRIMARY]
+END
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[{_sqlEventProcessingOptions.Schema}].[ProjectionJournal]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [{_sqlEventProcessingOptions.Schema}].[ProjectionJournal]
+    (
+	    [Name] [nvarchar](650) NOT NULL,
+	    [SequenceNumber] [bigint] NOT NULL,
+	    [DateCompleted] [datetime2](7) NULL,
+        CONSTRAINT [PK_ProjectionJournal] PRIMARY KEY CLUSTERED 
+        (
+	        [Name] ASC,
+	        [SequenceNumber] ASC
+        )
+        WITH 
+        (
+            PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF
+        ) ON [PRIMARY]
+    ) ON [PRIMARY]
+END
+
+EXEC sp_releaseapplock @Resource = '{typeof(EventProcessingHostedService).FullName}', @LockOwner = 'Session';
+"));
+        }
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _pipelineFactory.PipelineCreated -= OnPipelineCreated;
+
+        await Task.CompletedTask;
+    }
+
+    private void OnPipelineCreated(object? sender, PipelineEventArgs e)
+    {
+        var pipelineType = e.Pipeline.GetType();
+
+        if (_sqlEventProcessingOptions.RegisterDatabaseContextObserver &&
+            (
+                pipelineType == _eventProcessingPipelineType ||
+                pipelineType == _eventProcessorStartupPipelineType
+            ))
+        {
+            e.Pipeline.AddObserver(_databaseContextObserver);
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        if (pipelineType == _eventProcessorStartupPipelineType)
         {
-            _pipelineFactory.PipelineCreated -= OnPipelineCreated;
-
-            await Task.CompletedTask;
-        }
-
-        private void OnPipelineCreated(object sender, PipelineEventArgs e)
-        {
-            var pipelineType = e.Pipeline.GetType();
-
-            if (pipelineType == _eventProcessingPipelineType ||
-                pipelineType == _eventProcessorStartupPipelineType)
-            {
-                e.Pipeline.RegisterObserver(_eventProcessingObserver);
-            }
-
-            if (pipelineType == _addProjectionPipeline)
-            {
-                e.Pipeline.RegisterObserver(_addProjectionObserver);
-            }
+            e.Pipeline.AddObserver<EventProcessingStartupObserver>();
         }
     }
 }

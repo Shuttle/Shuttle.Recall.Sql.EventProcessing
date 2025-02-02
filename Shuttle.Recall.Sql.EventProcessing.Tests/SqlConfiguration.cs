@@ -1,4 +1,3 @@
-using System;
 using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +13,7 @@ namespace Shuttle.Recall.Sql.EventProcessing.Tests;
 [SetUpFixture]
 public class SqlConfiguration
 {
-    public static IServiceCollection GetServiceCollection(bool sync)
+    public static IServiceCollection GetServiceCollection()
     {
         var services = new ServiceCollection();
 
@@ -22,30 +21,29 @@ public class SqlConfiguration
             .AddSingleton<IConfiguration>(new ConfigurationBuilder().Build())
             .AddDataAccess(builder =>
             {
-                builder.AddConnectionString("Shuttle", "Microsoft.Data.SqlClient", "server=.;database=Shuttle;user id=sa;password=Pass!000;TrustServerCertificate=true");
-                builder.AddConnectionString("ShuttleProjection", "Microsoft.Data.SqlClient", "server=.;database=ShuttleProjection;user id=sa;password=Pass!000;TrustServerCertificate=true");
-                builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Shuttle";
+                builder.AddConnectionString("StorageConnection", "Microsoft.Data.SqlClient", "Server=.;Database=RecallFixtureStorage;User Id=sa;Password=Pass!000;TrustServerCertificate=true");
+                builder.AddConnectionString("EventProcessingConnection", "Microsoft.Data.SqlClient", "Server=.;Database=RecallFixtureEventProcessing;User Id=sa;Password=Pass!000;TrustServerCertificate=true");
             })
             .AddDataAccessLogging(builder =>
             {
-                builder.Options.DatabaseContext = false;
+                builder.Options.DatabaseContext = true;
                 builder.Options.DbCommandFactory = true;
             })
             .AddSqlEventStorage(builder =>
             {
-                builder.Options.ConnectionStringName = "Shuttle";
+                builder.Options.ConnectionStringName = "StorageConnection";
+                builder.Options.Schema = "Recall";
+
+                builder.UseSqlServer();
             })
             .AddSqlEventProcessing(builder =>
             {
-                builder.Options.ConnectionStringName = "ShuttleProjection";
+                builder.Options.ConnectionStringName = "EventProcessingConnection";
+                builder.Options.Schema = "Recall";
+
+                builder.UseSqlServer();
             })
-            .AddEventStore(builder =>
-            {
-                builder.Options.ProjectionThreadCount = 1;
-                builder.Options.Asynchronous = !sync;
-            })
-            .AddRecallLogging();
-;
+            .AddEventStoreLogging();
 
         return services;
     }

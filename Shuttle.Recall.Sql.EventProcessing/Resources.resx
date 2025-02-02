@@ -117,7 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConnectionStringException" xml:space="preserve">
+  <data name="ConnectionStringOptionException" xml:space="preserve">
     <value>No 'SqlEventProcessingOptions.ConnectionStringName' has been specified.</value>
+  </data>
+  <data name="ProjectionServiceTypeException" xml:space="preserve">
+    <value>The projection event service must be of type '{0}'; instead found type '{1}'.</value>
+    <comment>0 = required type name, 1 = registered type name</comment>
+  </data>
+  <data name="SchemaOptionException" xml:space="preserve">
+    <value>No 'SqlEventProcessingOptions.Schema' has been specified.</value>
   </data>
 </root>
